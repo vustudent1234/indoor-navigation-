@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>University Map with Live Location</title>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { width: 100%; height: 100vh; }
+    #controls {
+      position: absolute; top: 10px; left: 10px; z-index: 1000;
+      background: white; padding: 10px; border-radius: 5px;
+      width: 250px;
+    }
+    select, button {
+      margin: 5px 0; width: 100%; padding: 5px;
+    }
+    #zoomOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.8);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    #zoomedImage {
+      max-width: 90vw;
+      max-height: 90vh;
+      border: 5px solid white;
+      border-radius: 10px;
+      cursor: zoom-out;
+    }
+    #indoorControls {
+      position: absolute; 
+      top: 10px; 
+      right: 10px; 
+      z-index: 1000;
+      background: white; 
+      padding: 10px; 
+      border-radius: 5px;
+      width: 250px;
+    }
+    .floor-plan {
+      width: 100%;
+      height: auto;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    .room-info {
+      margin-top: 10px;
+      padding: 5px;
+      background: #f5f5f5;
+      border-radius: 3px;
+    }
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+      border-radius: 5px 5px 0 0;
+    }
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 10px 16px;
+      transition: 0.3s;
+    }
+    .tab button:hover {
+      background-color: #ddd;
+    }
+    .tab button.active {
+      background-color: #0078A8;
+      color: white;
+    }
+    .tabcontent {
+      display: none;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+      background: white;
+    }
+    #buildingSelector {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="controls">
+  <label for="location">Go to Location:</label>
+  <select id="location" onchange="goToLocation()"></select>
+
+  <br><br>
+
+  <label for="start">Start:</label>
+  <select id="start"></select>
+
+  <label for="destination">Destination:</label>
+  <select id="destination"></select>
+
+  <button onclick="updateRoute()">Show Route</button>
+  <button onclick="useLiveLocation()">Use Live Location</button>
+</div>
+
+<div id="indoorControls">
+  <select id="buildingSelector" onchange="showBuildingFloors()">
+    <option value="">Select Building</option>
+    <option value="1">Building 1</option>
+    <option value="2">Building 2</option>
+    <option value="3">Building 3</option>
+    <option value="4">Building 4</option>
+    <option value="5">Building 5</option>
+    <option value="6">Building 6</option>
+    <option value="7">Building 7</option>
+  </select>
+
+  <div id="building2Controls" style="display:none;">
+    <div class="tab">
+      <button class="tablinks active" onclick="openFloor(event, 'groundFloor')">Ground Floor</button>
+      <button class="tablinks" onclick="openFloor(event, 'firstFloor')">1st Floor</button>
+      <button class="tablinks" onclick="openFloor(event, 'secondFloor')">2nd Floor</button>
+      <button class="tablinks" onclick="openFloor(event, 'thirdFloor')">3rd Floor</button>
+    </div>
+
+    <div id="groundFloor" class="tabcontent" style="display:block;">
+      <img src="https://via.placeholder.com/400x300?text=Building+2+Ground+Floor" alt="Ground Floor" class="floor-plan" onclick="zoomImage(this.src)">
+      <select id="groundFloorRooms" onchange="showRoomInfo('ground')">
+        <option value="">Select a room</option>
+        <option value="2001">2001 - Seminar Hall</option>
+        <option value="2002">2002 - Staff room (central store)</option>
+        <option value="2003A">2003A - Placement office</option>
+        <option value="2003B">2003B - Stationery Store & Reprography</option>
+        <option value="2003C">2003C - First Aid Cum Sick Room</option>
+        <option value="2004">2004 - Mechanical Staff Room</option>
+        <option value="2005-2006">2005 & 2006 - Computer Center, Language Lab, Laboratory</option>
+        <option value="2007">2007 - Boys Washroom</option>
+        <option value="2008">2008 - Staff Room</option>
+        <option value="2009">2009 - Computer Lab</option>
+        <option value="2010">2010 - Computer Lab</option>
+        <option value="2011">2011 - Computer Lab</option>
+        <option value="2012">2012 - Computer Lab</option>
+        <option value="2013-2014">2013 & 2014 - Laboratory</option>
+        <option value="2015">2015 - Girls washroom</option>
+      </select>
+      <div id="groundFloorInfo" class="room-info"></div>
+    </div>
+
+    <div id="firstFloor" class="tabcontent">
+      <img src="https://via.placeholder.com/400x300?text=Building+2+1st+Floor" alt="1st Floor" class="floor-plan" onclick="zoomImage(this.src)">
+      <select id="firstFloorRooms" onchange="showRoomInfo('first')">
+        <option value="">Select a room</option>
+        <option value="2101">2101 - SAPS lab</option>
+        <option value="2102a">2102a - Faculty Room</option>
+        <option value="2102b">2102b - Seminar Hall PH</option>
+        <option value="2103">2103 - Classroom (Pharmacy)</option>
+        <option value="2104a">2104a - Faculty Room</option>
+        <option value="2104b">2104b - Pharmacognosy Laboratory-1</option>
+        <option value="2105">2105 - HAP/Pharmacology Laboratory 1</option>
+        <option value="2106">2106 - Pharmaceutics Laboratory 1</option>
+        <option value="2107">2107 - Pharmaceutics Laboratory 2</option>
+        <option value="2108a">2108a - Faculty Room</option>
+        <option value="2108b">2108b - Pharmaceutics Laboratory 3</option>
+        <option value="2109">2109 - Gents Toilet</option>
+        <option value="2110">2110 - FE lab</option>
+        <option value="2111">2111 - Classroom</option>
+        <option value="2112">2112 - Classroom</option>
+        <option value="2113">2113 - Classroom</option>
+        <option value="2114">2114 - Classroom</option>
+        <option value="2115">2115 - Classroom</option>
+        <option value="2116">2116 - Cabin of HOD/Departments Office</option>
+        <option value="2117">2117 - Ladies Common Room + Ladies Toilet</option>
+      </select>
+      <div id="firstFloorInfo" class="room-info"></div>
+    </div>
+
+    <div id="secondFloor" class="tabcontent">
+      <img src="https://via.placeholder.com/400x300?text=Building+2+2nd+Floor" alt="2nd Floor" class="floor-plan" onclick="zoomImage(this.src)">
+      <div class="room-info">Detailed information for 2nd Floor coming soon.</div>
+    </div>
+
+    <div id="thirdFloor" class="tabcontent">
+      <img src="https://via.placeholder.com/400x300?text=Building+2+3rd+Floor" alt="3rd Floor" class="floor-plan" onclick="zoomImage(this.src)">
+      <select id="thirdFloorRooms" onchange="showRoomInfo('third')">
+        <option value="">Select a room</option>
+        <option value="2301">2301 - Pharmacognosy Laboratory- 2</option>
+        <option value="2302">2302 - Pharmacology Laboratory- 2</option>
+        <option value="2303">2303 - Classroom</option>
+        <option value="2304">2304 - Classroom</option>
+        <option value="2305">2305 - Classroom</option>
+        <option value="2306">2306 - Classroom</option>
+        <option value="2307">2307 - Pharmaceutics Lab</option>
+        <option value="2308">2308 - Pharmaceuticals Chemistry Laboratory- 2</option>
+        <option value="2309">2309 - Pharmacy Practice Lab</option>
+        <option value="2310">2310 - Gents Toilet</option>
+        <option value="2311">2311 - Classroom</option>
+        <option value="2312">2312 - Classroom</option>
+        <option value="2313">2313 - Dean's Office</option>
+        <option value="2314">2314 - Computer Centre and Languages Lab</option>
+        <option value="2315">2315 - Store room - 2 (Glassware & Equipments)</option>
+        <option value="2316">2316 - Store room - 1A (Chemicals)</option>
+        <option value="2317">2317 - Faculty Room</option>
+      </select>
+      <div id="thirdFloorInfo" class="room-info"></div>
+    </div>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<!-- Image Zoom Overlay -->
+<div id="zoomOverlay" onclick="closeZoom()">
+  <img id="zoomedImage" src="" />
+</div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoidmVkYW50b20iLCJhIjoiY202bWEweDMwMGV2YzJrczRlZ2JtYWZibSJ9.LC_mF9gyUu5vBXuot8FQWQ';
+
+  const locations = [
+    { name: "Building 2", coords: [73.88367516423422, 18.459181351404517], image: "https://via.placeholder.com/150", description: "Engineering Dept" },
+    { name: "Main Building", coords: [73.8835843028105, 18.460288315096374], image: "Building_VU_2-min.jpg", description: "Admin", zoomable: true },
+    { name: "Building 4", coords: [73.88416703777891, 18.458350387535205], image: "Building_-__Design___Architecture", description: "architecture" },
+    { name: "Building 5", coords: [73.88385830208395, 18.457996621351942], image: "Building_-__Design___Architecture", description: "library and design classes " },
+    { name: "playground", coords: [73.88390385295752, 18.457775500169415], image: "sports.jpeg", description: "volleyball court", zoomable: true	 },
+    { name: "Playground", coords: [73.88390653242094, 18.457495921254193], image: "https://via.placeholder.com/150", description: "Main Ground for Events" },
+    { name: "Building 3", coords: [73.88407773451284, 18.45874112469597], image: "https://via.placeholder.com/150", description: "Lecture Halls" },
+    { name: "Canteen", coords: [73.88411692573803, 18.458480900120453], image: "https://via.placeholder.com/150", description: "Food & Beverages" }
+  ];
+
+  // Building 2 room data
+  const building2Rooms = {
+    ground: {
+      "2001": { name: "Seminar Hall", staff: [] },
+      "2002": { name: "Staff room (central store)", staff: [] },
+      "2003A": { name: "Placement office", staff: ["Trupti Shinde", "Swati Shriyal", "Kavita Kumavat"] },
+      "2003B": { name: "Stationery Store & Reprography", staff: ["Tareek Pattewar", "Maya mam", "Jgdish tawade"] },
+      "2003C": { name: "First Aid Cum Sick Room", staff: ["Noshir Tarapore"] },
+      "2004": { name: "Mechanical Staff Room", staff: [] },
+      "2005-2006": { name: "Computer Center, Language Lab, Laboratory", staff: [] },
+      "2007": { name: "Boys Washroom", staff: [] },
+      "2008": { name: "Staff Room", staff: [
+        "Suhas chavan", "Gulnaz thakur", "Maghanand bhambre", "Divya munot", 
+        "Richa panchgaur", "Bhagyalaxmi mam", "Prachati mam", "Yogita patil", 
+        "Purva thakur", "Pooman adhakari", "Shreedevi hiremat", "Mahfooz alam", 
+        "Sukhpreet kour", "Palavi morey"
+      ]},
+      "2009": { name: "Computer Lab", staff: ["Arti patle sardhara", "Prajakta dhamdhare", "mahadewi saxena"] },
+      "2010": { name: "Computer Lab", staff: ["Pavitha nooji", "Kanchan katake", "Seema vanjire"] },
+      "2011": { name: "Computer Lab", staff: ["Vivek thorat", "Ajit mane", "Sagar mahajan"] },
+      "2012": { name: "Computer Lab", staff: ["Sital Dash", "Vaishali Babu", "Sumaira Shaikh"] },
+      "2013-2014": { name: "Laboratory", staff: [] },
+      "2015": { name: "Girls washroom", staff: [] }
+    },
+    first: {
+      "2101": { name: "SAPS lab", staff: [] },
+      "2102a": { name: "Faculty Room", staff: [
+        "Prajakta Kapadnis", "kirti Deshpande", "Mrunalini Kulkarni", 
+        "Lida Sajimon", "Archana Shaha", "Yogita Shinde"
+      ]},
+      "2102b": { name: "Seminar Hall PH", staff: [] },
+      "2103": { name: "Classroom (Pharmacy)", staff: [] },
+      "2104a": { name: "Faculty Room", staff: [
+        "Poonam Taru", "Dr Dipali Talele", "Bhavna Mahajan", "Dr Priyanka Karpe"
+      ]},
+      "2104b": { name: "Pharmacognosy Laboratory-1", staff: [] },
+      "2105": { name: "HAP/Pharmacology Laboratory 1", staff: [] },
+      "2106": { name: "Pharmaceutics Laboratory 1", staff: [] },
+      "2107": { name: "Pharmaceutics Laboratory 2", staff: [] },
+      "2108a": { name: "Faculty Room", staff: [
+        "Madhav Shelke", "Sonali Manwatkar", "Swati Mutha"
+      ]},
+      "2108b": { name: "Pharmaceutics Laboratory 3", staff: [] },
+      "2109": { name: "Gents Toilet", staff: [] },
+      "2110": { name: "FE lab", staff: [] },
+      "2111": { name: "Classroom", staff: [] },
+      "2112": { name: "Classroom", staff: [] },
+      "2113": { name: "Classroom", staff: [] },
+      "2114": { name: "Classroom", staff: [] },
+      "2115": { name: "Classroom", staff: [] },
+      "2116": { name: "Cabin of HOD/Departments Office", staff: [
+        "Prof. Aditya Bhope", "Mr. Srinivas Chippalkatti", 
+        "Dr. Sandhya Tapadia", "Dr. Jupindar Kaur", "Jameel Ansari"
+      ]},
+      "2117": { name: "Ladies Common Room + Ladies Toilet", staff: [] }
+    },
+    third: {
+      "2301": { name: "Pharmacognosy Laboratory- 2", staff: [] },
+      "2302": { name: "Pharmacology Laboratory- 2", staff: [] },
+      "2303": { name: "Classroom", staff: [] },
+      "2304": { name: "Classroom", staff: [] },
+      "2305": { name: "Classroom", staff: [] },
+      "2306": { name: "Classroom", staff: [] },
+      "2307": { name: "Pharmaceutics Lab", staff: [] },
+      "2308": { name: "Pharmaceuticals Chemistry Laboratory- 2", staff: [] },
+      "2309": { name: "Pharmacy Practice Lab", staff: [] },
+      "2310": { name: "Gents Toilet", staff: [] },
+      "2311": { name: "Classroom", staff: [] },
+      "2312": { name: "Classroom", staff: [] },
+      "2313": { name: "Dean's Office", staff: [] },
+      "2314": { name: "Computer Centre and Languages Lab", staff: [] },
+      "2315": { name: "Store room - 2 (Glassware & Equipments)", staff: [] },
+      "2316": { name: "Store room - 1A (Chemicals)", staff: [] },
+      "2317": { name: "Faculty Room", staff: [
+        "Dr. Om Bagade", "Dr. Nitesh Bhatia", "Dr. Amrita Thakur", 
+        "Dr. Neeta Rai", "Dr. Sabeena Syed", "Prof. Supriya Unavane", 
+        "Prof. Snehal Hase"
+      ]}
+    }
+  };
+
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: locations[0].coords,
+    zoom: 16
+  });
+
+  map.on('load', () => {
+    map.setPitch(60);
+    map.setBearing(-17.6);
+
+    const labelLayerId = map.getStyle().layers.find(
+      l => l.type === 'symbol' && l.layout['text-field']
+    )?.id;
+
+    map.addLayer({
+      id: '3d-buildings',
+      source: 'composite',
+      'source-layer': 'building',
+      filter: ['==', 'extrude', 'true'],
+      type: 'fill-extrusion',
+      minzoom: 15,
+      paint: {
+        'fill-extrusion-color': '#aaa',
+        'fill-extrusion-height': ['get', 'height'],
+        'fill-extrusion-base': ['get', 'min_height'],
+        'fill-extrusion-opacity': 0.6
+      }
+    }, labelLayerId);
+
+    addMarkers();
+    populateDropdowns();
+  });
+
+  function addMarkers() {
+    locations.forEach(loc => {
+      const popupContent = `
+        <div style="width: 200px;">
+          <h4>${loc.name}</h4>
+          <img src="${loc.image}" alt="${loc.name}" 
+               style="width: 100%; height: auto; cursor: ${loc.zoomable ? 'zoom-in' : 'default'};" 
+               ${loc.zoomable ? 'onclick="zoomImage(this.src)"' : ''} />
+          <p>${loc.description}</p>
+        </div>
+      `;
+      new mapboxgl.Marker()
+        .setLngLat(loc.coords)
+        .setPopup(new mapboxgl.Popup().setHTML(popupContent))
+        .addTo(map);
+    });
+  }
+
+  function populateDropdowns() {
+    const selects = ['location', 'start', 'destination'];
+    selects.forEach(id => {
+      const select = document.getElementById(id);
+      locations.forEach(loc => {
+        const option = document.createElement("option");
+        option.value = `${loc.coords[1]},${loc.coords[0]}`;
+        option.textContent = loc.name;
+        select.appendChild(option);
+      });
+    });
+  }
+
+  function goToLocation() {
+    const [lat, lng] = document.getElementById('location').value.split(',').map(Number);
+    map.flyTo({ center: [lng, lat], zoom: 18 });
+  }
+
+  function updateRoute(startCoord, endCoord) {
+    if (!startCoord || !endCoord) {
+      const [startLat, startLng] = document.getElementById('start').value.split(',').map(Number);
+      const [endLat, endLng] = document.getElementById('destination').value.split(',').map(Number);
+      startCoord = [startLng, startLat];
+      endCoord = [endLng, endLat];
+    }
+
+    fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${startCoord.join(',')};${endCoord.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`)
+      .then(res => res.json())
+      .then(data => {
+        if (map.getSource('route')) {
+          map.removeLayer('route');
+          map.removeSource('route');
+        }
+
+        map.addSource('route', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: data.routes[0].geometry
+          }
+        });
+
+        map.addLayer({
+          id: 'route',
+          type: 'line',
+          source: 'route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#0078A8',
+            'line-width': 5
+          }
+        });
+
+        map.fitBounds([startCoord, endCoord], { padding: 80 });
+      });
+  }
+
+  function useLiveLocation() {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(position => {
+      const liveCoords = [position.coords.longitude, position.coords.latitude];
+      const [destLat, destLng] = document.getElementById('destination').value.split(',').map(Number);
+      const destinationCoords = [destLng, destLat];
+
+      new mapboxgl.Marker({ color: "blue" })
+        .setLngLat(liveCoords)
+        .setPopup(new mapboxgl.Popup().setText("You are here"))
+        .addTo(map);
+
+      map.flyTo({ center: liveCoords, zoom: 17 });
+
+      updateRoute(liveCoords, destinationCoords);
+
+    }, () => {
+      alert('Unable to retrieve your location');
+    });
+  }
+
+  function zoomImage(src) {
+    const overlay = document.getElementById('zoomOverlay');
+    const zoomedImg = document.getElementById('zoomedImage');
+    zoomedImg.src = src;
+    overlay.style.display = 'flex';
+  }
+
+  function closeZoom() {
+    document.getElementById('zoomOverlay').style.display = 'none';
+  }
+
+  // Indoor navigation functions
+  function showBuildingFloors() {
+    const building = document.getElementById('buildingSelector').value;
+    if (building === '2') {
+      document.getElementById('building2Controls').style.display = 'block';
+    } else {
+      document.getElementById('building2Controls').style.display = 'none';
+      alert('Indoor navigation for Building ' + building + ' coming soon!');
+    }
+  }
+
+  function openFloor(evt, floorName) {
+    const tabcontent = document.getElementsByClassName("tabcontent");
+    for (let i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+
+    const tablinks = document.getElementsByClassName("tablinks");
+    for (let i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    document.getElementById(floorName).style.display = "block";
+    evt.currentTarget.className += " active";
+  }
+
+  function showRoomInfo(floor) {
+    const selectId = floor + 'FloorRooms';
+    const infoId = floor + 'FloorInfo';
+    const roomNumber = document.getElementById(selectId).value;
+    const infoDiv = document.getElementById(infoId);
+    
+    if (!roomNumber) {
+      infoDiv.innerHTML = '';
+      return;
+    }
+
+    const roomData = building2Rooms[floor][roomNumber];
+    let infoHTML = `<h4>${roomNumber} - ${roomData.name}</h4>`;
+    
+    if (roomData.staff && roomData.staff.length > 0) {
+      infoHTML += '<p><strong>Staff:</strong></p><ul>';
+      roomData.staff.forEach(staff => {
+        infoHTML += `<li>${staff}</li>`;
+      });
+      infoHTML += '</ul>';
+    } else {
+      infoHTML += '<p>No staff information available</p>';
+    }
+    
+    infoDiv.innerHTML = infoHTML;
+  }
+</script>
+
+</body>
+</html>
