@@ -110,6 +110,7 @@
 
   <button onclick="updateRoute()">Show Route</button>
   <button onclick="useLiveLocation()">Use Live Location</button>
+  <button id="stopLiveLocation" style="display:none;" onclick="stopLiveLocationTracking()">Stop Live Tracking</button>
 </div>
 
 <div id="indoorControls">
@@ -228,8 +229,8 @@
   const locations = [
     { name: "Building 2", coords: [73.88367516423422, 18.459181351404517], image: "https://via.placeholder.com/150", description: "Engineering Dept" },
     { name: "Main Building", coords: [73.8835843028105, 18.460288315096374], image: "Building_VU_2-min.jpg", description: "Admin", zoomable: true },
-    { name: "Building 4", coords: [73.88416703777891, 18.458350387535205], image: "Building_-__Design___Architecture", description: "architecture" },
-    { name: "Building 5", coords: [73.88385830208395, 18.457996621351942], image: "Building_-__Design___Architecture", description: "library and design classes " },
+    { name: "Building 4", coords: [73.88416703777891, 18.458350387535205], image: "Building_-__Design___Architecture.jpg", description: "architecture", zoomable: true },
+    { name: "Building 5", coords: [73.88385830208395, 18.457996621351942], image: "Building_-__Design___Architecture.jpg", description: "library and design classes ", zoomable: true },
     { name: "playground", coords: [73.88390385295752, 18.457775500169415], image: "sports.jpeg", description: "volleyball court", zoomable: true	 },
     { name: "Playground", coords: [73.88390653242094, 18.457495921254193], image: "https://via.placeholder.com/150", description: "Main Ground for Events" },
     { name: "Building 3", coords: [73.88407773451284, 18.45874112469597], image: "https://via.placeholder.com/150", description: "Lecture Halls" },
@@ -324,6 +325,13 @@
     zoom: 16
   });
 
+  // Variables for live location tracking
+  let liveLocationMarker = null;
+  let liveLocationWatchId = null;
+  let remainingRouteCoordinates = [];
+  let currentRouteSource = null;
+  let destinationMarker = null;
+
   map.on('load', () => {
     map.setPitch(60);
     map.setBearing(-17.6);
@@ -395,6 +403,17 @@
       endCoord = [endLng, endLat];
     }
 
+    // Remove previous destination marker if it exists
+    if (destinationMarker) {
+      destinationMarker.remove();
+    }
+
+    // Add red destination marker
+    destinationMarker = new mapboxgl.Marker({ color: "red" })
+      .setLngLat(endCoord)
+      .setPopup(new mapboxgl.Popup().setText("Destination"))
+      .addTo(map);
+
     fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${startCoord.join(',')};${endCoord.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`)
       .then(res => res.json())
       .then(data => {
@@ -403,6 +422,9 @@
           map.removeSource('route');
         }
 
+        // Store the route coordinates for live tracking
+        remainingRouteCoordinates = data.routes[0].geometry.coordinates;
+        
         map.addSource('route', {
           type: 'geojson',
           data: {
@@ -410,6 +432,7 @@
             geometry: data.routes[0].geometry
           }
         });
+        currentRouteSource = 'route';
 
         map.addLayer({
           id: 'route',
@@ -435,23 +458,155 @@
       return;
     }
 
+    // Show stop button and hide live location button
+    document.getElementById('stopLiveLocation').style.display = 'block';
+    document.querySelector('#controls button[onclick="useLiveLocation()"]').style.display = 'none';
+
+    // First get current position
     navigator.geolocation.getCurrentPosition(position => {
       const liveCoords = [position.coords.longitude, position.coords.latitude];
       const [destLat, destLng] = document.getElementById('destination').value.split(',').map(Number);
       const destinationCoords = [destLng, destLat];
 
-      new mapboxgl.Marker({ color: "blue" })
-        .setLngLat(liveCoords)
-        .setPopup(new mapboxgl.Popup().setText("You are here"))
+      // Add or update live location marker
+      if (!liveLocationMarker) {
+        liveLocationMarker = new mapboxgl.Marker({ color: "blue" })
+          .setLngLat(liveCoords)
+          .setPopup(new mapboxgl.Popup().setText("You are here"))
+          .addTo(map);
+      } else {
+        liveLocationMarker.setLngLat(liveCoords);
+      }
+
+      // Remove previous destination marker if it exists
+      if (destinationMarker) {
+        destinationMarker.remove();
+      }
+
+      // Add red destination marker
+      destinationMarker = new mapboxgl.Marker({ color: "red" })
+        .setLngLat(destinationCoords)
+        .setPopup(new mapboxgl.Popup().setText("Destination"))
         .addTo(map);
 
       map.flyTo({ center: liveCoords, zoom: 17 });
 
+      // Update route with current position
       updateRoute(liveCoords, destinationCoords);
+
+      // Start watching position
+      liveLocationWatchId = navigator.geolocation.watchPosition(
+        position => updateLivePosition(position, destinationCoords),
+        error => console.error('Error getting live location:', error),
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
 
     }, () => {
       alert('Unable to retrieve your location');
     });
+  }
+
+  function stopLiveLocationTracking() {
+    if (liveLocationWatchId) {
+      navigator.geolocation.clearWatch(liveLocationWatchId);
+      liveLocationWatchId = null;
+    }
+    
+    if (liveLocationMarker) {
+      liveLocationMarker.remove();
+      liveLocationMarker = null;
+    }
+    
+    if (destinationMarker) {
+      destinationMarker.remove();
+      destinationMarker = null;
+    }
+    
+    // Show live location button and hide stop button
+    document.querySelector('#controls button[onclick="useLiveLocation()"]').style.display = 'block';
+    document.getElementById('stopLiveLocation').style.display = 'none';
+  }
+
+  function updateLivePosition(position, destinationCoords) {
+    const liveCoords = [position.coords.longitude, position.coords.latitude];
+    
+    // Update the marker position
+    if (liveLocationMarker) {
+      liveLocationMarker.setLngLat(liveCoords);
+    }
+
+    // Update the camera to follow the user
+    map.flyTo({ center: liveCoords, zoom: 17 });
+
+    // Check if we have route coordinates to work with
+    if (remainingRouteCoordinates && remainingRouteCoordinates.length > 0) {
+      // Find the closest point on the route to the current position
+      let closestPointIndex = 0;
+      let minDistance = Infinity;
+      
+      remainingRouteCoordinates.forEach((coord, index) => {
+        const distance = getDistance(liveCoords, coord);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestPointIndex = index;
+        }
+      });
+
+      // If we're close to a point on the route, trim the route up to that point
+      if (minDistance < 0.0001) { // About 11 meters
+        // Trim the route up to the closest point
+        remainingRouteCoordinates = remainingRouteCoordinates.slice(closestPointIndex);
+        
+        // Update the route display
+        updateRemainingRoute(remainingRouteCoordinates);
+      }
+    }
+  }
+
+  function updateRemainingRoute(coordinates) {
+    if (coordinates.length < 2) return; // Need at least 2 points for a line
+    
+    // Create a new GeoJSON feature with the remaining coordinates
+    const geojson = {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: coordinates
+      }
+    };
+
+    // Check if we have a route source already
+    if (map.getSource(currentRouteSource)) {
+      // Update the existing source
+      map.getSource(currentRouteSource).setData(geojson);
+    } else {
+      // Create a new source (shouldn't happen in normal flow)
+      map.addSource(currentRouteSource, {
+        type: 'geojson',
+        data: geojson
+      });
+
+      map.addLayer({
+        id: currentRouteSource,
+        type: 'line',
+        source: currentRouteSource,
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#0078A8',
+          'line-width': 5
+        }
+      });
+    }
+  }
+
+  // Helper function to calculate distance between two coordinates
+  function getDistance(coord1, coord2) {
+    const dx = coord1[0] - coord2[0];
+    const dy = coord1[1] - coord2[1];
+    return Math.sqrt(dx * dx + dy * dy);
   }
 
   function zoomImage(src) {
