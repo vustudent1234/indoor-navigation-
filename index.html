@@ -6,114 +6,408 @@
   <title>University Map with Live Location</title>
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; }
-    #map { width: 100%; height: 100vh; }
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3f37c9;
+      --accent-color: #4cc9f0;
+      --light-color: #f8f9fa;
+      --dark-color: #212529;
+      --success-color: #4caf50;
+      --warning-color: #ff9800;
+      --danger-color: #f44336;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      color: var(--dark-color);
+      background-color: #f5f7fa;
+    }
+    
+    #map { 
+      width: 100%; 
+      height: 100vh; 
+    }
+    
+    /* Control Panel Styles */
     #controls {
-      position: absolute; top: 10px; left: 10px; z-index: 1000;
-      background: white; padding: 10px; border-radius: 5px;
-      width: 250px;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      width: 280px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
-    select, button {
-      margin: 5px 0; width: 100%; padding: 5px;
+    
+    #controls label {
+      display: block;
+      margin: 8px 0 4px;
+      font-weight: 500;
+      color: var(--dark-color);
+      font-size: 14px;
     }
+    
+    #controls select, #controls button {
+      margin: 6px 0;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      transition: var(--transition);
+      background-color: white;
+    }
+    
+    #controls select:focus, #controls button:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+    }
+    
+    #controls button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      margin-top: 10px;
+      transition: var(--transition);
+    }
+    
+    #controls button:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+    
+    #controls button:active {
+      transform: translateY(0);
+    }
+    
+    #stopLiveLocation {
+      background-color: var(--danger-color);
+    }
+    
+    #stopLiveLocation:hover {
+      background-color: #d32f2f;
+    }
+    
+    /* Indoor Controls */
+    #indoorControls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      width: 300px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    #buildingSelector {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-family: 'Poppins', sans-serif;
+      margin-bottom: 15px;
+    }
+    
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ddd;
+      background-color: #f1f1f1;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      display: flex;
+    }
+    
+    .tab button {
+      background-color: inherit;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 10px 16px;
+      transition: var(--transition);
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+    }
+    
+    .tab button:hover {
+      background-color: #ddd;
+    }
+    
+    .tab button.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .tabcontent {
+      display: none;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      background: white;
+    }
+    
+    .floor-plan {
+      width: 100%;
+      height: auto;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .floor-plan:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+    
+    .room-info {
+      margin-top: 15px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: var(--border-radius);
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .room-info h4 {
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+    
+    .room-info ul {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+    
+    .room-info li {
+      margin-bottom: 4px;
+    }
+    
+    /* Fix for room select dropdown overflow */
+    .tabcontent select {
+      width: 100% !important;
+      max-width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    
+    /* Image Zoom Overlay */
     #zoomOverlay {
       display: none;
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100vw;
       height: 100vh;
-      background-color: rgba(0,0,0,0.8);
+      background-color: rgba(0,0,0,0.9);
       z-index: 2000;
       justify-content: center;
       align-items: center;
+      cursor: zoom-out;
     }
+    
     #zoomedImage {
       max-width: 90vw;
       max-height: 90vh;
       border: 5px solid white;
       border-radius: 10px;
-      cursor: zoom-out;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
-    #indoorControls {
-      position: absolute; 
-      top: 10px; 
-      right: 10px; 
+    
+    /* Custom Mapbox Popup Styles */
+    .mapboxgl-popup-content {
+      padding: 15px !important;
+      border-radius: var(--border-radius) !important;
+      box-shadow: var(--shadow) !important;
+    }
+    
+    .mapboxgl-popup-close-button {
+      font-size: 20px !important;
+      padding: 5px 8px !important;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #controls, #indoorControls, #eventsControls {
+        width: 90%;
+        left: 5%;
+        right: 5%;
+        top: 10px;
+      }
+      
+      #indoorControls, #eventsControls {
+        top: auto;
+        bottom: 20px;
+      }
+      
+      .tab button {
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+    }
+    
+    /* Animation for live location marker */
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .live-location-marker {
+      animation: pulse 2s infinite;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Events Panel Styles */
+    #eventsControls {
+      position: absolute;
+      top: 20px;
+      left: 320px;
       z-index: 1000;
-      background: white; 
-      padding: 10px; 
-      border-radius: 5px;
-      width: 250px;
-    }
-    .floor-plan {
-      width: 100%;
-      height: auto;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-    .room-info {
-      margin-top: 10px;
-      padding: 5px;
-      background: #f5f5f5;
-      border-radius: 3px;
-    }
-    .tab {
-      overflow: hidden;
-      border: 1px solid #ccc;
-      background-color: #f1f1f1;
-      border-radius: 5px 5px 0 0;
-    }
-    .tab button {
-      background-color: inherit;
-      float: left;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      padding: 10px 16px;
-      transition: 0.3s;
-    }
-    .tab button:hover {
-      background-color: #ddd;
-    }
-    .tab button.active {
-      background-color: #0078A8;
-      color: white;
-    }
-    .tabcontent {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      width: 280px;
+      max-height: 70vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       display: none;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-top: none;
-      border-radius: 0 0 5px 5px;
-      background: white;
     }
-    #buildingSelector {
-      width: 100%;
+    
+    .event-item {
+      padding: 10px;
       margin-bottom: 10px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-left: 3px solid var(--primary-color);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .event-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .event-item h4 {
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+    
+    .event-meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .event-location {
+      font-weight: 500;
+      color: var(--secondary-color);
+    }
+    
+    .event-description {
+      font-size: 13px;
+      color: #555;
+    }
+    
+    /* Event marker styles */
+    .event-marker {
+      background-color: #f72585;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 0 10px rgba(247, 37, 133, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      font-size: 10px;
     }
   </style>
 </head>
 <body>
 
 <div id="controls">
+  <h3 style="margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 8px;">Campus Navigation</h3>
+  
   <label for="location">Go to Location:</label>
   <select id="location" onchange="goToLocation()"></select>
 
-  <br><br>
+  <div style="margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px;">
+    <label for="start">Start Point:</label>
+    <select id="start"></select>
 
-  <label for="start">Start:</label>
-  <select id="start"></select>
+    <label for="destination">Destination:</label>
+    <select id="destination"></select>
 
-  <label for="destination">Destination:</label>
-  <select id="destination"></select>
-
-  <button onclick="updateRoute()">Show Route</button>
-  <button onclick="useLiveLocation()">Use Live Location</button>
-  <button id="stopLiveLocation" style="display:none;" onclick="stopLiveLocationTracking()">Stop Live Tracking</button>
+    <button onclick="updateRoute()">
+      <span id="routeSpinner" class="spinner" style="display: none;"></span>
+      Show Route
+    </button>
+    <button onclick="useLiveLocation()">
+      <span id="locationSpinner" class="spinner" style="display: none;"></span>
+      Use Live Location
+    </button>
+    <button id="stopLiveLocation" style="display:none;" onclick="stopLiveLocationTracking()">Stop Live Tracking</button>
+  </div>
+  
+  <button onclick="toggleEventsPanel()" style="margin-top: 15px;">Show Events</button>
 </div>
 
 <div id="indoorControls">
+  <h3 style="margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 8px;">Indoor Navigation</h3>
+  
   <select id="buildingSelector" onchange="showBuildingFloors()">
     <option value="">Select Building</option>
     <option value="1">Building 1</option>
@@ -214,6 +508,12 @@
       <div id="thirdFloorInfo" class="room-info"></div>
     </div>
   </div>
+</div>
+
+<!-- Events Panel -->
+<div id="eventsControls">
+  <h3 style="margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 8px;">Upcoming Events</h3>
+  <div id="eventsList"></div>
 </div>
 
 <div id="map"></div>
@@ -318,6 +618,50 @@
     }
   };
 
+  // Sample events data
+  const events = [
+    {
+      id: 1,
+      title: "Career Fair 2023",
+      description: "Annual university career fair with top companies",
+      location: "Main Building",
+      coords: [73.8835843028105, 18.460288315096374], // Same as Main Building
+      date: "2023-11-15",
+      time: "10:00 AM - 4:00 PM",
+      category: "career"
+    },
+    {
+      id: 2,
+      title: "Engineering Seminar",
+      description: "Guest lecture on modern engineering practices",
+      location: "Building 2",
+      coords: [73.88367516423422, 18.459181351404517], // Same as Building 2
+      date: "2023-11-18",
+      time: "2:00 PM - 4:00 PM",
+      category: "academic"
+    },
+    {
+      id: 3,
+      title: "Sports Day",
+      description: "Annual inter-department sports competition",
+      location: "Main Ground",
+      coords: [73.88390653242094, 18.457495921254193], // Same as Playground
+      date: "2023-11-22",
+      time: "9:00 AM - 5:00 PM",
+      category: "sports"
+    },
+    {
+      id: 4,
+      title: "Art Exhibition",
+      description: "Student art showcase in the design building",
+      location: "Building 5",
+      coords: [73.88385830208395, 18.457996621351942], // Same as Building 5
+      date: "2023-11-25",
+      time: "11:00 AM - 7:00 PM",
+      category: "arts"
+    }
+  ];
+
   const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v12',
@@ -331,6 +675,10 @@
   let remainingRouteCoordinates = [];
   let currentRouteSource = null;
   let destinationMarker = null;
+  
+  // Variables for event tracking
+  let eventMarkers = [];
+  let eventsPanelVisible = false;
 
   map.on('load', () => {
     map.setPitch(60);
@@ -363,16 +711,33 @@
     locations.forEach(loc => {
       const popupContent = `
         <div style="width: 200px;">
-          <h4>${loc.name}</h4>
+          <h4 style="margin-bottom: 8px; color: var(--primary-color);">${loc.name}</h4>
           <img src="${loc.image}" alt="${loc.name}" 
-               style="width: 100%; height: auto; cursor: ${loc.zoomable ? 'zoom-in' : 'default'};" 
+               style="width: 100%; height: auto; cursor: ${loc.zoomable ? 'zoom-in' : 'default'}; 
+                      border-radius: 4px; margin-bottom: 8px;" 
                ${loc.zoomable ? 'onclick="zoomImage(this.src)"' : ''} />
-          <p>${loc.description}</p>
+          <p style="font-size: 14px; color: #555;">${loc.description}</p>
         </div>
       `;
-      new mapboxgl.Marker()
+      
+      // Custom marker colors based on location type
+      let color = '#4361ee'; // Default blue
+      if (loc.name.toLowerCase().includes('building')) color = '#3f37c9'; // Darker blue for buildings
+      if (loc.name.toLowerCase().includes('canteen')) color = '#f72585'; // Pink for canteen
+      if (loc.name.toLowerCase().includes('playground')) color = '#4cc9f0'; // Light blue for playgrounds
+      
+      const el = document.createElement('div');
+      el.className = 'marker';
+      el.style.backgroundColor = color;
+      el.style.width = '20px';
+      el.style.height = '20px';
+      el.style.borderRadius = '50%';
+      el.style.border = '2px solid white';
+      el.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+      
+      new mapboxgl.Marker(el)
         .setLngLat(loc.coords)
-        .setPopup(new mapboxgl.Popup().setHTML(popupContent))
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent))
         .addTo(map);
     });
   }
@@ -381,6 +746,18 @@
     const selects = ['location', 'start', 'destination'];
     selects.forEach(id => {
       const select = document.getElementById(id);
+      // Clear existing options except the first one
+      while (select.options.length > 0) {
+        select.remove(0);
+      }
+      
+      // Add default option
+      const defaultOption = document.createElement("option");
+      defaultOption.value = "";
+      defaultOption.textContent = id === 'location' ? "Select a location..." : "Select...";
+      select.appendChild(defaultOption);
+      
+      // Add location options
       locations.forEach(loc => {
         const option = document.createElement("option");
         option.value = `${loc.coords[1]},${loc.coords[0]}`;
@@ -391,25 +768,39 @@
   }
 
   function goToLocation() {
-    const [lat, lng] = document.getElementById('location').value.split(',').map(Number);
+    const value = document.getElementById('location').value;
+    if (!value) return;
+    
+    const [lat, lng] = value.split(',').map(Number);
     map.flyTo({ center: [lng, lat], zoom: 18 });
   }
 
   function updateRoute(startCoord, endCoord) {
     if (!startCoord || !endCoord) {
-      const [startLat, startLng] = document.getElementById('start').value.split(',').map(Number);
-      const [endLat, endLng] = document.getElementById('destination').value.split(',').map(Number);
+      const startValue = document.getElementById('start').value;
+      const endValue = document.getElementById('destination').value;
+      
+      if (!startValue || !endValue) {
+        alert('Please select both start and destination points');
+        return;
+      }
+      
+      const [startLat, startLng] = startValue.split(',').map(Number);
+      const [endLat, endLng] = endValue.split(',').map(Number);
       startCoord = [startLng, startLat];
       endCoord = [endLng, endLat];
     }
 
+    // Show loading spinner
+    document.getElementById('routeSpinner').style.display = 'inline-block';
+    
     // Remove previous destination marker if it exists
     if (destinationMarker) {
       destinationMarker.remove();
     }
 
     // Add red destination marker
-    destinationMarker = new mapboxgl.Marker({ color: "red" })
+    destinationMarker = new mapboxgl.Marker({ color: "#f44336" })
       .setLngLat(endCoord)
       .setPopup(new mapboxgl.Popup().setText("Destination"))
       .addTo(map);
@@ -417,6 +808,9 @@
     fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${startCoord.join(',')};${endCoord.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`)
       .then(res => res.json())
       .then(data => {
+        // Hide loading spinner
+        document.getElementById('routeSpinner').style.display = 'none';
+        
         if (map.getSource('route')) {
           map.removeLayer('route');
           map.removeSource('route');
@@ -429,6 +823,7 @@
           type: 'geojson',
           data: {
             type: 'Feature',
+            properties: {},
             geometry: data.routes[0].geometry
           }
         });
@@ -443,12 +838,39 @@
             'line-cap': 'round'
           },
           paint: {
-            'line-color': '#0078A8',
-            'line-width': 5
+            'line-color': '#4361ee',
+            'line-width': 5,
+            'line-opacity': 0.8
           }
         });
 
-        map.fitBounds([startCoord, endCoord], { padding: 80 });
+        // Add arrow symbol layer for direction
+        map.addLayer({
+          id: 'route-arrows',
+          type: 'symbol',
+          source: 'route',
+          layout: {
+            'symbol-placement': 'line',
+            'text-field': '▶',
+            'text-size': 12,
+            'symbol-spacing': 50,
+            'text-keep-upright': false
+          },
+          paint: {
+            'text-color': '#ffffff',
+            'text-halo-color': '#4361ee',
+            'text-halo-width': 1
+          }
+        });
+
+        map.fitBounds([startCoord, endCoord], { 
+          padding: {top: 100, bottom: 100, left: 100, right: 100} 
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching route:', error);
+        document.getElementById('routeSpinner').style.display = 'none';
+        alert('Error calculating route. Please try again.');
       });
   }
 
@@ -458,19 +880,40 @@
       return;
     }
 
+    const destinationValue = document.getElementById('destination').value;
+    if (!destinationValue) {
+      alert('Please select a destination first');
+      return;
+    }
+
+    // Show loading spinner
+    document.getElementById('locationSpinner').style.display = 'inline-block';
+    
     // Show stop button and hide live location button
     document.getElementById('stopLiveLocation').style.display = 'block';
     document.querySelector('#controls button[onclick="useLiveLocation()"]').style.display = 'none';
 
     // First get current position
     navigator.geolocation.getCurrentPosition(position => {
+      // Hide loading spinner
+      document.getElementById('locationSpinner').style.display = 'none';
+      
       const liveCoords = [position.coords.longitude, position.coords.latitude];
-      const [destLat, destLng] = document.getElementById('destination').value.split(',').map(Number);
+      const [destLat, destLng] = destinationValue.split(',').map(Number);
       const destinationCoords = [destLng, destLat];
 
       // Add or update live location marker
       if (!liveLocationMarker) {
-        liveLocationMarker = new mapboxgl.Marker({ color: "blue" })
+        const el = document.createElement('div');
+        el.className = 'live-location-marker';
+        el.style.backgroundColor = '#4cc9f0';
+        el.style.width = '20px';
+        el.style.height = '20px';
+        el.style.borderRadius = '50%';
+        el.style.border = '2px solid white';
+        el.style.boxShadow = '0 0 10px rgba(76, 201, 240, 0.7)';
+        
+        liveLocationMarker = new mapboxgl.Marker({ element: el })
           .setLngLat(liveCoords)
           .setPopup(new mapboxgl.Popup().setText("You are here"))
           .addTo(map);
@@ -484,7 +927,7 @@
       }
 
       // Add red destination marker
-      destinationMarker = new mapboxgl.Marker({ color: "red" })
+      destinationMarker = new mapboxgl.Marker({ color: "#f44336" })
         .setLngLat(destinationCoords)
         .setPopup(new mapboxgl.Popup().setText("Destination"))
         .addTo(map);
@@ -497,12 +940,21 @@
       // Start watching position
       liveLocationWatchId = navigator.geolocation.watchPosition(
         position => updateLivePosition(position, destinationCoords),
-        error => console.error('Error getting live location:', error),
+        error => {
+          console.error('Error getting live location:', error);
+          document.getElementById('locationSpinner').style.display = 'none';
+        },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
       );
 
-    }, () => {
+    }, (error) => {
+      console.error('Error getting location:', error);
+      document.getElementById('locationSpinner').style.display = 'none';
       alert('Unable to retrieve your location');
+    }, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
     });
   }
 
@@ -520,6 +972,13 @@
     if (destinationMarker) {
       destinationMarker.remove();
       destinationMarker = null;
+    }
+    
+    // Remove route if it exists
+    if (map.getSource('route')) {
+      map.removeLayer('route');
+      map.removeLayer('route-arrows');
+      map.removeSource('route');
     }
     
     // Show live location button and hide stop button
@@ -595,8 +1054,9 @@
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#0078A8',
-          'line-width': 5
+          'line-color': '#4361ee',
+          'line-width': 5,
+          'line-opacity': 0.8
         }
       });
     }
@@ -671,6 +1131,95 @@
     }
     
     infoDiv.innerHTML = infoHTML;
+  }
+
+  // Event-related functions
+  function toggleEventsPanel() {
+    const eventsPanel = document.getElementById('eventsControls');
+    eventsPanelVisible = !eventsPanelVisible;
+    eventsPanel.style.display = eventsPanelVisible ? 'block' : 'none';
+    
+    if (eventsPanelVisible) {
+      loadEvents();
+    } else {
+      clearEventMarkers();
+    }
+  }
+
+  function loadEvents() {
+    const eventsList = document.getElementById('eventsList');
+    eventsList.innerHTML = '';
+    
+    // Clear any existing markers
+    clearEventMarkers();
+    
+    // Add events to the list
+    events.forEach(event => {
+      const eventElement = document.createElement('div');
+      eventElement.className = 'event-item';
+      eventElement.innerHTML = `
+        <h4>${event.title}</h4>
+        <div class="event-meta">
+          <span>${event.date} • ${event.time}</span><br>
+          <span class="event-location">${event.location}</span>
+        </div>
+        <p class="event-description">${event.description}</p>
+      `;
+      
+      // Click handler to zoom to event location
+      eventElement.addEventListener('click', () => {
+        zoomToEvent(event);
+      });
+      
+      eventsList.appendChild(eventElement);
+      
+      // Add marker for this event
+      addEventMarker(event);
+    });
+  }
+
+  function addEventMarker(event) {
+    // Create a custom marker element
+    const el = document.createElement('div');
+    el.className = 'event-marker';
+    el.innerHTML = 'E'; // You could use icons or numbers here
+    
+    const marker = new mapboxgl.Marker({ element: el })
+      .setLngLat(event.coords)
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`
+        <div style="width: 200px;">
+          <h4 style="color: #f72585; margin-bottom: 5px;">${event.title}</h4>
+          <p><strong>When:</strong> ${event.date}, ${event.time}</p>
+          <p><strong>Where:</strong> ${event.location}</p>
+          <p>${event.description}</p>
+        </div>
+      `))
+      .addTo(map);
+    
+    eventMarkers.push(marker);
+  }
+
+  function clearEventMarkers() {
+    eventMarkers.forEach(marker => marker.remove());
+    eventMarkers = [];
+  }
+
+  function zoomToEvent(event) {
+    map.flyTo({
+      center: event.coords,
+      zoom: 18,
+      essential: true
+    });
+    
+    // Open the event's popup
+    const marker = eventMarkers.find(m => {
+      const lngLat = m.getLngLat();
+      return lngLat.lng === event.coords[0] && lngLat.lat === event.coords[1];
+    });
+    
+    if (marker) {
+      marker.togglePopup();
+    }
   }
 </script>
 
