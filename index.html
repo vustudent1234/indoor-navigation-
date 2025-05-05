@@ -9,9 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #4361ee;
-      --secondary-color: #3f37c9;
-      --accent-color: #4cc9f0;
+      --primary-color: #ff7b25;
+      --secondary-color: #e64a19;
+      --accent-color: #ff9800;
       --light-color: #f8f9fa;
       --dark-color: #212529;
       --success-color: #4caf50;
@@ -20,6 +20,19 @@
       --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       --border-radius: 8px;
       --transition: all 0.3s ease;
+    }
+    
+    /* Dark mode variables */
+    [data-theme="dark"] {
+      --primary-color: #ff9800;
+      --secondary-color: #ff7b25;
+      --accent-color: #e64a19;
+      --light-color: #212529;
+      --dark-color: #f8f9fa;
+      --success-color: #4caf50;
+      --warning-color: #ff9800;
+      --danger-color: #f44336;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
     
     * {
@@ -34,7 +47,8 @@
       height: 100%;
       font-family: 'Poppins', sans-serif;
       color: var(--dark-color);
-      background-color: #f5f7fa;
+      background-color: var(--light-color);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     
     #map { 
@@ -55,6 +69,49 @@
       box-shadow: var(--shadow);
       backdrop-filter: blur(5px);
       border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    [data-theme="dark"] #controls,
+    [data-theme="dark"] #indoorControls,
+    [data-theme="dark"] #eventsControls {
+      background: rgba(40, 40, 40, 0.9);
+      color: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.3);
+    }
+    
+    [data-theme="dark"] #controls select,
+    [data-theme="dark"] #controls button,
+    [data-theme="dark"] .tabcontent select {
+      background-color: #333;
+      color: #fff;
+      border-color: #555;
+    }
+    
+    [data-theme="dark"] .tab {
+      background-color: #333;
+      border-color: #555;
+    }
+    
+    [data-theme="dark"] .tab button {
+      color: #fff;
+    }
+    
+    [data-theme="dark"] .tab button:hover {
+      background-color: #555;
+    }
+    
+    [data-theme="dark"] .tabcontent {
+      background-color: #333;
+      border-color: #555;
+      color: #fff;
+    }
+    
+    [data-theme="dark"] .room-info {
+      background-color: #444;
+    }
+    
+    [data-theme="dark"] .event-item {
+      background-color: #333;
     }
     
     #controls label {
@@ -80,7 +137,7 @@
     #controls select:focus, #controls button:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+      box-shadow: 0 0 0 2px rgba(255, 123, 37, 0.2);
     }
     
     #controls button {
@@ -251,6 +308,11 @@
       box-shadow: var(--shadow) !important;
     }
     
+    [data-theme="dark"] .mapboxgl-popup-content {
+      background-color: #333;
+      color: #fff;
+    }
+    
     .mapboxgl-popup-close-button {
       font-size: 20px !important;
       padding: 5px 8px !important;
@@ -374,6 +436,156 @@
       font-weight: bold;
       font-size: 10px;
     }
+
+    /* Custom marker styles */
+    .marker {
+      background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png');
+      background-size: cover;
+      width: 30px;
+      height: 40px;
+      cursor: pointer;
+    }
+
+    .destination-marker {
+      background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker_red.png');
+      background-size: cover;
+      width: 30px;
+      height: 40px;
+      cursor: pointer;
+    }
+
+    /* Theme toggle button */
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    [data-theme="dark"] .theme-toggle {
+      background: rgba(40, 40, 40, 0.9);
+    }
+
+    /* Favorites panel */
+    #favoritesPanel {
+      position: absolute;
+      top: 70px;
+      left: 20px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      width: 280px;
+      max-height: 60vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: none;
+    }
+
+    [data-theme="dark"] #favoritesPanel {
+      background: rgba(40, 40, 40, 0.9);
+    }
+
+    .favorite-item {
+      padding: 8px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border-left: 3px solid var(--accent-color);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    [data-theme="dark"] .favorite-item {
+      background: #333;
+    }
+
+    .favorite-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .favorite-item button {
+      background: none;
+      border: none;
+      color: var(--danger-color);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 5px;
+    }
+
+    /* Favorite marker styles */
+    .favorite-marker {
+      background-color: var(--accent-color);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      font-size: 10px;
+    }
+
+    /* Add to favorites button in popup */
+    .add-favorite-btn-popup {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 5px 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: var(--transition);
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+
+    .add-favorite-btn-popup:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .remove-favorite-btn-popup {
+      background-color: var(--danger-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 5px 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: var(--transition);
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+
+    .remove-favorite-btn-popup:hover {
+      background-color: #d32f2f;
+    }
   </style>
 </head>
 <body>
@@ -402,7 +614,8 @@
     <button id="stopLiveLocation" style="display:none;" onclick="stopLiveLocationTracking()">Stop Live Tracking</button>
   </div>
   
-  <button onclick="toggleEventsPanel()" style="margin-top: 15px;">Show Events</button>
+  <button onclick="toggleEventsPanel()" style="margin-top: 10px;">Show Events</button>
+  <button onclick="toggleFavoritesPanel()" style="margin-top: 10px;">My Favorites</button>
 </div>
 
 <div id="indoorControls">
@@ -515,6 +728,15 @@
   <h3 style="margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 8px;">Upcoming Events</h3>
   <div id="eventsList"></div>
 </div>
+
+<!-- Favorites Panel -->
+<div id="favoritesPanel">
+  <h3 style="margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 8px;">My Favorite Locations</h3>
+  <div id="favoritesList"></div>
+</div>
+
+<!-- Theme toggle button (floating) -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">🌓</button>
 
 <div id="map"></div>
 
@@ -662,6 +884,10 @@
     }
   ];
 
+  // Favorites data
+  let favorites = JSON.parse(localStorage.getItem('mapFavorites')) || [];
+  let favoriteMarkers = [];
+
   const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v12',
@@ -705,6 +931,7 @@
 
     addMarkers();
     populateDropdowns();
+    loadFavorites();
   });
 
   function addMarkers() {
@@ -717,14 +944,15 @@
                       border-radius: 4px; margin-bottom: 8px;" 
                ${loc.zoomable ? 'onclick="zoomImage(this.src)"' : ''} />
           <p style="font-size: 14px; color: #555;">${loc.description}</p>
+          ${getFavoriteButtonHTML(loc.coords, loc.name)}
         </div>
       `;
       
       // Custom marker colors based on location type
-      let color = '#4361ee'; // Default blue
-      if (loc.name.toLowerCase().includes('building')) color = '#3f37c9'; // Darker blue for buildings
+      let color = '#ff7b25'; // Orange for default
+      if (loc.name.toLowerCase().includes('building')) color = '#e64a19'; // Darker orange for buildings
       if (loc.name.toLowerCase().includes('canteen')) color = '#f72585'; // Pink for canteen
-      if (loc.name.toLowerCase().includes('playground')) color = '#4cc9f0'; // Light blue for playgrounds
+      if (loc.name.toLowerCase().includes('playground')) color = '#ff9800'; // Light orange for playgrounds
       
       const el = document.createElement('div');
       el.className = 'marker';
@@ -735,11 +963,36 @@
       el.style.border = '2px solid white';
       el.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
       
-      new mapboxgl.Marker(el)
+      const marker = new mapboxgl.Marker({ element: el })
         .setLngLat(loc.coords)
         .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent))
         .addTo(map);
+      
+      // Store the marker reference for later use
+      loc.marker = marker;
     });
+  }
+
+  function getFavoriteButtonHTML(coords, name) {
+    const isFavorite = favorites.some(fav => 
+      fav.coords.lng === coords[0] && fav.coords.lat === coords[1]
+    );
+    
+    if (isFavorite) {
+      return `
+        <button class="remove-favorite-btn-popup" 
+                onclick="removeFavoriteByCoords([${coords}], event)">
+          Remove from Favorites
+        </button>
+      `;
+    } else {
+      return `
+        <button class="add-favorite-btn-popup" 
+                onclick="addFavoriteByCoords([${coords}], '${name}', event)">
+          Add to Favorites
+        </button>
+      `;
+    }
   }
 
   function populateDropdowns() {
@@ -838,7 +1091,7 @@
             'line-cap': 'round'
           },
           paint: {
-            'line-color': '#4361ee',
+            'line-color': '#ff7b25',
             'line-width': 5,
             'line-opacity': 0.8
           }
@@ -858,7 +1111,7 @@
           },
           paint: {
             'text-color': '#ffffff',
-            'text-halo-color': '#4361ee',
+            'text-halo-color': '#ff7b25',
             'text-halo-width': 1
           }
         });
@@ -906,12 +1159,12 @@
       if (!liveLocationMarker) {
         const el = document.createElement('div');
         el.className = 'live-location-marker';
-        el.style.backgroundColor = '#4cc9f0';
+        el.style.backgroundColor = '#ff9800';
         el.style.width = '20px';
         el.style.height = '20px';
         el.style.borderRadius = '50%';
         el.style.border = '2px solid white';
-        el.style.boxShadow = '0 0 10px rgba(76, 201, 240, 0.7)';
+        el.style.boxShadow = '0 0 10px rgba(255, 152, 0, 0.7)';
         
         liveLocationMarker = new mapboxgl.Marker({ element: el })
           .setLngLat(liveCoords)
@@ -1054,7 +1307,7 @@
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#4361ee',
+          'line-color': '#ff7b25',
           'line-width': 5,
           'line-opacity': 0.8
         }
@@ -1221,6 +1474,220 @@
       marker.togglePopup();
     }
   }
+
+  // Theme toggle function
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    if (currentTheme === 'dark') {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+
+  // Check for saved theme preference
+  function checkTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }
+
+  // Favorites functions
+  function toggleFavoritesPanel() {
+    const favoritesPanel = document.getElementById('favoritesPanel');
+    if (favoritesPanel.style.display === 'block') {
+      favoritesPanel.style.display = 'none';
+    } else {
+      favoritesPanel.style.display = 'block';
+      renderFavorites();
+    }
+  }
+
+  function renderFavorites() {
+    const favoritesList = document.getElementById('favoritesList');
+    favoritesList.innerHTML = '';
+    
+    if (favorites.length === 0) {
+      favoritesList.innerHTML = '<p>No favorite locations saved yet.</p>';
+      return;
+    }
+    
+    favorites.forEach((fav, index) => {
+      const favItem = document.createElement('div');
+      favItem.className = 'favorite-item';
+      favItem.innerHTML = `
+        <span>${fav.name}</span>
+        <button onclick="removeFavorite(${index}, event)">×</button>
+      `;
+      
+      favItem.addEventListener('click', () => {
+        map.flyTo({
+          center: [fav.coords.lng, fav.coords.lat],
+          zoom: fav.zoom || 16
+        });
+      });
+      
+      favoritesList.appendChild(favItem);
+    });
+  }
+
+  function addFavoriteByCoords(coords, name, event) {
+    event.stopPropagation();
+    
+    const newFavorite = {
+      name: name,
+      coords: { lng: coords[0], lat: coords[1] },
+      zoom: 16
+    };
+    
+    // Check if this location is already favorited
+    const isDuplicate = favorites.some(fav => 
+      fav.coords.lng === newFavorite.coords.lng && 
+      fav.coords.lat === newFavorite.coords.lat
+    );
+    
+    if (isDuplicate) {
+      alert('This location is already in your favorites!');
+      return;
+    }
+    
+    favorites.push(newFavorite);
+    saveFavorites();
+    renderFavorites();
+    
+    // Add marker for this favorite
+    addFavoriteMarker(newFavorite);
+    
+    // Update the popup content to show remove option
+    updatePopupContent(coords, name, true);
+    
+    // Show the favorites panel
+    document.getElementById('favoritesPanel').style.display = 'block';
+  }
+
+  function removeFavoriteByCoords(coords, event) {
+    event.stopPropagation();
+    
+    const index = favorites.findIndex(fav => 
+      fav.coords.lng === coords[0] && 
+      fav.coords.lat === coords[1]
+    );
+    
+    if (index !== -1) {
+      // Remove the marker
+      if (favoriteMarkers[index]) {
+        favoriteMarkers[index].remove();
+        favoriteMarkers.splice(index, 1);
+      }
+      
+      // Remove from favorites array
+      favorites.splice(index, 1);
+      saveFavorites();
+      renderFavorites();
+      
+      // Find the location name
+      let name = 'Location';
+      const location = locations.find(loc => 
+        loc.coords[0] === coords[0] && loc.coords[1] === coords[1]
+      );
+      if (location) name = location.name;
+      
+      // Update the popup content to show add option
+      updatePopupContent(coords, name, false);
+    }
+  }
+
+  function removeFavorite(index, event) {
+    event.stopPropagation();
+    
+    // Remove the marker
+    if (favoriteMarkers[index]) {
+      favoriteMarkers[index].remove();
+      favoriteMarkers.splice(index, 1);
+    }
+    
+    // Remove from favorites array
+    favorites.splice(index, 1);
+    saveFavorites();
+    renderFavorites();
+  }
+
+  function updatePopupContent(coords, name, isFavorite) {
+    // Find the marker and update its popup content
+    locations.forEach(loc => {
+      if (loc.coords[0] === coords[0] && loc.coords[1] === coords[1]) {
+        const popupContent = `
+          <div style="width: 200px;">
+            <h4 style="margin-bottom: 8px; color: var(--primary-color);">${name}</h4>
+            <img src="${loc.image}" alt="${name}" 
+                 style="width: 100%; height: auto; cursor: ${loc.zoomable ? 'zoom-in' : 'default'}; 
+                        border-radius: 4px; margin-bottom: 8px;" 
+                 ${loc.zoomable ? 'onclick="zoomImage(this.src)"' : ''} />
+            <p style="font-size: 14px; color: #555;">${loc.description}</p>
+            ${isFavorite ? 
+              `<button class="remove-favorite-btn-popup" 
+                      onclick="removeFavoriteByCoords([${coords}], event)">
+                Remove from Favorites
+              </button>` :
+              `<button class="add-favorite-btn-popup" 
+                      onclick="addFavoriteByCoords([${coords}], '${name}', event)">
+                Add to Favorites
+              </button>`
+            }
+          </div>
+        `;
+        
+        if (loc.marker && loc.marker.getPopup()) {
+          loc.marker.getPopup().setHTML(popupContent);
+        }
+      }
+    });
+  }
+
+  function addFavoriteMarker(favorite) {
+    const el = document.createElement('div');
+    el.className = 'favorite-marker';
+    el.innerHTML = '★';
+    
+    const marker = new mapboxgl.Marker({ element: el })
+      .setLngLat([favorite.coords.lng, favorite.coords.lat])
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`
+        <div style="width: 200px;">
+          <h4 style="color: var(--accent-color); margin-bottom: 5px;">${favorite.name}</h4>
+          <p>Saved location</p>
+          <button class="remove-favorite-btn-popup" 
+                  onclick="removeFavoriteByCoords([${favorite.coords.lng}, ${favorite.coords.lat}], event)">
+            Remove from Favorites
+          </button>
+        </div>
+      `))
+      .addTo(map);
+    
+    favoriteMarkers.push(marker);
+  }
+
+  function saveFavorites() {
+    localStorage.setItem('mapFavorites', JSON.stringify(favorites));
+  }
+
+  function loadFavorites() {
+    favorites = JSON.parse(localStorage.getItem('mapFavorites')) || [];
+    favoriteMarkers.forEach(marker => marker.remove());
+    favoriteMarkers = [];
+    
+    favorites.forEach(fav => {
+      addFavoriteMarker(fav);
+    });
+  }
+
+  // Initialize theme and favorites when page loads
+  window.onload = function() {
+    checkTheme();
+    loadFavorites();
+  };
 </script>
 
 </body>
