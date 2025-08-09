@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>University Map with Live Location</title>
+  <title>University Map with Live Location (Backend-ready)</title>
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,8 +21,6 @@
       --border-radius: 8px;
       --transition: all 0.3s ease;
     }
-    
-    /* Dark mode variables */
     [data-theme="dark"] {
       --primary-color: #ff9800;
       --secondary-color: #ff7b25;
@@ -34,557 +32,38 @@
       --danger-color: #f44336;
       --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Poppins', sans-serif;
-      color: var(--dark-color);
-      background-color: var(--light-color);
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    
-    #map { 
-      width: 100%; 
-      height: 100vh; 
-    }
-    
-    /* Control Panel Styles */
-    #controls {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 15px;
-      border-radius: var(--border-radius);
-      width: 280px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    [data-theme="dark"] #controls,
-    [data-theme="dark"] #indoorControls,
-    [data-theme="dark"] #eventsControls {
-      background: rgba(40, 40, 40, 0.9);
-      color: #fff;
-      border: 1px solid rgba(0, 0, 0, 0.3);
-    }
-    
-    [data-theme="dark"] #controls select,
-    [data-theme="dark"] #controls button,
-    [data-theme="dark"] .tabcontent select {
-      background-color: #333;
-      color: #fff;
-      border-color: #555;
-    }
-    
-    [data-theme="dark"] .tab {
-      background-color: #333;
-      border-color: #555;
-    }
-    
-    [data-theme="dark"] .tab button {
-      color: #fff;
-    }
-    
-    [data-theme="dark"] .tab button:hover {
-      background-color: #555;
-    }
-    
-    [data-theme="dark"] .tabcontent {
-      background-color: #333;
-      border-color: #555;
-      color: #fff;
-    }
-    
-    [data-theme="dark"] .room-info {
-      background-color: #444;
-    }
-    
-    [data-theme="dark"] .event-item {
-      background-color: #333;
-    }
-    
-    #controls label {
-      display: block;
-      margin: 8px 0 4px;
-      font-weight: 500;
-      color: var(--dark-color);
-      font-size: 14px;
-    }
-    
-    #controls select, #controls button {
-      margin: 6px 0;
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: var(--border-radius);
-      font-family: 'Poppins', sans-serif;
-      font-size: 14px;
-      transition: var(--transition);
-      background-color: white;
-    }
-    
-    #controls select:focus, #controls button:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(255, 123, 37, 0.2);
-    }
-    
-    #controls button {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-      margin-top: 10px;
-      transition: var(--transition);
-    }
-    
-    #controls button:hover {
-      background-color: var(--secondary-color);
-      transform: translateY(-1px);
-    }
-    
-    #controls button:active {
-      transform: translateY(0);
-    }
-    
-    #stopLiveLocation {
-      background-color: var(--danger-color);
-    }
-    
-    #stopLiveLocation:hover {
-      background-color: #d32f2f;
-    }
-    
-    /* Indoor Controls */
-    #indoorControls {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 15px;
-      border-radius: var(--border-radius);
-      width: 300px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    #buildingSelector {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: var(--border-radius);
-      font-family: 'Poppins', sans-serif;
-      margin-bottom: 15px;
-    }
-    
-    .tab {
-      overflow: hidden;
-      border: 1px solid #ddd;
-      background-color: #f1f1f1;
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-      display: flex;
-    }
-    
-    .tab button {
-      background-color: inherit;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      padding: 10px 16px;
-      transition: var(--transition);
-      flex: 1;
-      text-align: center;
-      font-size: 12px;
-    }
-    
-    .tab button:hover {
-      background-color: #ddd;
-    }
-    
-    .tab button.active {
-      background-color: var(--primary-color);
-      color: white;
-    }
-    
-    .tabcontent {
-      display: none;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-top: none;
-      border-radius: 0 0 var(--border-radius) var(--border-radius);
-      background: white;
-    }
-    
-    .floor-plan {
-      width: 100%;
-      height: auto;
-      margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    
-    .floor-plan:hover {
-      box-shadow: var(--shadow);
-      transform: translateY(-2px);
-    }
-    
-    .room-info {
-      margin-top: 15px;
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: var(--border-radius);
-      border-left: 4px solid var(--primary-color);
-    }
-    
-    .room-info h4 {
-      color: var(--primary-color);
-      margin-bottom: 8px;
-    }
-    
-    .room-info ul {
-      padding-left: 20px;
-      margin-top: 8px;
-    }
-    
-    .room-info li {
-      margin-bottom: 4px;
-    }
-    
-    /* Fix for room select dropdown overflow */
-    .tabcontent select {
-      width: 100% !important;
-      max-width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: var(--border-radius);
-      font-family: 'Poppins', sans-serif;
-      font-size: 13px;
-      margin-top: 10px;
-    }
-    
-    /* Image Zoom Overlay */
-    #zoomOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: rgba(0,0,0,0.9);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
-      cursor: zoom-out;
-    }
-    
-    #zoomedImage {
-      max-width: 90vw;
-      max-height: 90vh;
-      border: 5px solid white;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    }
-    
-    /* Custom Mapbox Popup Styles */
-    .mapboxgl-popup-content {
-      padding: 15px !important;
-      border-radius: var(--border-radius) !important;
-      box-shadow: var(--shadow) !important;
-    }
-    
-    [data-theme="dark"] .mapboxgl-popup-content {
-      background-color: #333;
-      color: #fff;
-    }
-    
-    .mapboxgl-popup-close-button {
-      font-size: 20px !important;
-      padding: 5px 8px !important;
-    }
-    
-    /* Responsive adjustments */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { margin: 0; padding: 0; height: 100%; font-family: 'Poppins', sans-serif; color: var(--dark-color); background-color: var(--light-color); transition: background-color 0.3s ease, color 0.3s ease; }
+    #map { width: 100%; height: 100vh; }
+    #controls { position: absolute; top: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,0.95); padding: 15px; border-radius: var(--border-radius); width: 280px; box-shadow: var(--shadow); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); }
+    [data-theme="dark"] #controls { background: rgba(40,40,40,0.9); color: #fff; border: 1px solid rgba(0,0,0,0.3); }
+    #controls label { display:block; margin:8px 0 4px; font-weight:500; color:var(--dark-color); font-size:14px; }
+    #controls select, #controls button, #controls input { margin:6px 0; width:100%; padding:10px; border:1px solid #ddd; border-radius:var(--border-radius); font-family:'Poppins'; font-size:14px; transition:var(--transition); background-color:white; }
+    #controls button { background-color:var(--primary-color); color:#fff; border:none; cursor:pointer; font-weight:500; margin-top:10px; }
+    #indoorControls { position:absolute; top:20px; right:20px; z-index:1000; background: rgba(255,255,255,0.95); padding:15px; border-radius:var(--border-radius); width:320px; box-shadow:var(--shadow); backdrop-filter: blur(5px); border:1px solid rgba(255,255,255,0.3); }
+    .tab { overflow:hidden; border:1px solid #ddd; background-color:#f1f1f1; border-radius: var(--border-radius) var(--border-radius) 0 0; display:flex; }
+    .tab button { background:inherit; border:none; outline:none; cursor:pointer; padding:10px 12px; transition:var(--transition); flex:1; text-align:center; font-size:12px; }
+    .tab button:hover { background:#ddd; }
+    .tab button.active { background:var(--primary-color); color:white; }
+    .tabcontent { display:none; padding:15px; border:1px solid #ddd; border-top:none; border-radius: 0 0 var(--border-radius) var(--border-radius); background:white; }
+    .floor-plan { width:100%; height:auto; margin:10px 0; border:1px solid #ddd; border-radius:var(--border-radius); cursor:pointer; transition:var(--transition); }
+    .room-info { margin-top:15px; padding:12px; background:#f8f9fa; border-radius:var(--border-radius); border-left:4px solid var(--primary-color); }
+    #zoomOverlay { display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center; cursor:zoom-out; }
+    #zoomedImage { max-width:90vw; max-height:90vh; border:5px solid white; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
+    .marker { background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png'); background-size:cover; width:30px; height:40px; cursor:pointer; }
+    .event-marker { background-color:#f72585; width:20px; height:20px; border-radius:50%; border:2px solid white; box-shadow:0 0 10px rgba(247,37,133,0.5); display:flex; justify-content:center; align-items:center; color:white; font-weight:bold; font-size:10px; }
+    .favorite-marker { background-color:var(--accent-color); width:20px; height:20px; border-radius:50%; border:2px solid white; box-shadow:0 0 10px rgba(255,152,0,0.5); display:flex; justify-content:center; align-items:center; color:white; font-weight:bold; font-size:10px; }
+    .theme-toggle { position:absolute; top:20px; right:20px; z-index:1000; background: rgba(255,255,255,0.9); border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--shadow); backdrop-filter: blur(5px); border:1px solid rgba(255,255,255,0.3); }
+    /* Settings Panel */
+    #settingsPanel { position: absolute; top: 20px; right: 360px; background: rgba(255,255,255,0.97); padding: 14px; border-radius: 10px; width: 320px; z-index: 2100; box-shadow: var(--shadow); display: none; border:1px solid rgba(255,255,255,0.6); }
+    #settingsPanel input, #settingsPanel textarea, #settingsPanel select, #settingsPanel button { width: 100%; margin-top: 8px; padding: 8px; border-radius: 6px; }
+    #settingsToggleBtn { position:absolute; top:70px; right:20px; z-index:2000; background: rgba(255,255,255,0.95); border:none; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--shadow); }
+    .spinner { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,.3); border-radius:50%; border-top-color:white; animation:spin 1s ease-in-out infinite; margin-right:8px; vertical-align:middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* responsive */
     @media (max-width: 768px) {
-      #controls, #indoorControls, #eventsControls {
-        width: 90%;
-        left: 5%;
-        right: 5%;
-        top: 10px;
-      }
-      
-      #indoorControls, #eventsControls {
-        top: auto;
-        bottom: 20px;
-      }
-      
-      .tab button {
-        padding: 8px 10px;
-        font-size: 11px;
-      }
-    }
-    
-    /* Animation for live location marker */
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.2); opacity: 0.7; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    
-    .live-location-marker {
-      animation: pulse 2s infinite;
-    }
-    
-    /* Loading spinner */
-    .spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    /* Events Panel Styles */
-    #eventsControls {
-      position: absolute;
-      top: 20px;
-      left: 320px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 15px;
-      border-radius: var(--border-radius);
-      width: 280px;
-      max-height: 70vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      display: none;
-    }
-    
-    .event-item {
-      padding: 10px;
-      margin-bottom: 10px;
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      border-left: 3px solid var(--primary-color);
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    
-    .event-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .event-item h4 {
-      color: var(--primary-color);
-      margin-bottom: 5px;
-    }
-    
-    .event-meta {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 5px;
-    }
-    
-    .event-location {
-      font-weight: 500;
-      color: var(--secondary-color);
-    }
-    
-    .event-description {
-      font-size: 13px;
-      color: #555;
-    }
-    
-    /* Event marker styles */
-    .event-marker {
-      background-color: #f72585;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 2px solid white;
-      box-shadow: 0 0 10px rgba(247, 37, 133, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-weight: bold;
-      font-size: 10px;
-    }
-
-    /* Custom marker styles */
-    .marker {
-      background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png');
-      background-size: cover;
-      width: 30px;
-      height: 40px;
-      cursor: pointer;
-    }
-
-    .destination-marker {
-      background-image: url('https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker_red.png');
-      background-size: cover;
-      width: 30px;
-      height: 40px;
-      cursor: pointer;
-    }
-
-    /* Theme toggle button */
-    .theme-toggle {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.9);
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    [data-theme="dark"] .theme-toggle {
-      background: rgba(40, 40, 40, 0.9);
-    }
-
-    /* Favorites panel */
-    #favoritesPanel {
-      position: absolute;
-      top: 70px;
-      left: 20px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 15px;
-      border-radius: var(--border-radius);
-      width: 280px;
-      max-height: 60vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      display: none;
-    }
-
-    [data-theme="dark"] #favoritesPanel {
-      background: rgba(40, 40, 40, 0.9);
-    }
-
-    .favorite-item {
-      padding: 8px;
-      margin-bottom: 8px;
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      border-left: 3px solid var(--accent-color);
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    [data-theme="dark"] .favorite-item {
-      background: #333;
-    }
-
-    .favorite-item:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .favorite-item button {
-      background: none;
-      border: none;
-      color: var(--danger-color);
-      cursor: pointer;
-      font-size: 16px;
-      padding: 0 5px;
-    }
-
-    /* Favorite marker styles */
-    .favorite-marker {
-      background-color: var(--accent-color);
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 2px solid white;
-      box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-weight: bold;
-      font-size: 10px;
-    }
-
-    /* Add to favorites button in popup */
-    .add-favorite-btn-popup {
-      background-color: var(--accent-color);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 5px 10px;
-      margin-top: 10px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: var(--transition);
-      display: block;
-      width: 100%;
-      text-align: center;
-    }
-
-    .add-favorite-btn-popup:hover {
-      background-color: var(--secondary-color);
-    }
-
-    .remove-favorite-btn-popup {
-      background-color: var(--danger-color);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      padding: 5px 10px;
-      margin-top: 10px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: var(--transition);
-      display: block;
-      width: 100%;
-      text-align: center;
-    }
-
-    .remove-favorite-btn-popup:hover {
-      background-color: #d32f2f;
+      #controls, #indoorControls, #eventsControls { width: 90%; left: 5%; right:5%; top: 10px; }
+      #indoorControls, #eventsControls { top: auto; bottom: 20px; }
     }
   </style>
 </head>
@@ -638,27 +117,13 @@
       <button class="tablinks" onclick="openFloor(event, 'firstFloor')">1st Floor</button>
       <button class="tablinks" onclick="openFloor(event, 'secondFloor')">2nd Floor</button>
       <button class="tablinks" onclick="openFloor(event, 'thirdFloor')">3rd Floor</button>
+      <button class="tablinks" onclick="openFloor(event, 'fourthFloor')">4th Floor</button>
     </div>
 
     <div id="groundFloor" class="tabcontent" style="display:block;">
       <img src="https://via.placeholder.com/400x300?text=Building+2+Ground+Floor" alt="Ground Floor" class="floor-plan" onclick="zoomImage(this.src)">
       <select id="groundFloorRooms" onchange="showRoomInfo('ground')">
         <option value="">Select a room</option>
-        <option value="2001">2001 - Seminar Hall</option>
-        <option value="2002">2002 - Staff room (central store)</option>
-        <option value="2003A">2003A - Placement office</option>
-        <option value="2003B">2003B - Stationery Store & Reprography</option>
-        <option value="2003C">2003C - First Aid Cum Sick Room</option>
-        <option value="2004">2004 - Mechanical Staff Room</option>
-        <option value="2005-2006">2005 & 2006 - Computer Center, Language Lab, Laboratory</option>
-        <option value="2007">2007 - Boys Washroom</option>
-        <option value="2008">2008 - Staff Room</option>
-        <option value="2009">2009 - Computer Lab</option>
-        <option value="2010">2010 - Computer Lab</option>
-        <option value="2011">2011 - Computer Lab</option>
-        <option value="2012">2012 - Computer Lab</option>
-        <option value="2013-2014">2013 & 2014 - Laboratory</option>
-        <option value="2015">2015 - Girls washroom</option>
       </select>
       <div id="groundFloorInfo" class="room-info"></div>
     </div>
@@ -667,70 +132,79 @@
       <img src="https://via.placeholder.com/400x300?text=Building+2+1st+Floor" alt="1st Floor" class="floor-plan" onclick="zoomImage(this.src)">
       <select id="firstFloorRooms" onchange="showRoomInfo('first')">
         <option value="">Select a room</option>
-        <option value="2101">2101 - SAPS lab</option>
-        <option value="2102a">2102a - Faculty Room</option>
-        <option value="2102b">2102b - Seminar Hall PH</option>
-        <option value="2103">2103 - Classroom (Pharmacy)</option>
-        <option value="2104a">2104a - Faculty Room</option>
-        <option value="2104b">2104b - Pharmacognosy Laboratory-1</option>
-        <option value="2105">2105 - HAP/Pharmacology Laboratory 1</option>
-        <option value="2106">2106 - Pharmaceutics Laboratory 1</option>
-        <option value="2107">2107 - Pharmaceutics Laboratory 2</option>
-        <option value="2108a">2108a - Faculty Room</option>
-        <option value="2108b">2108b - Pharmaceutics Laboratory 3</option>
-        <option value="2109">2109 - Gents Toilet</option>
-        <option value="2110">2110 - FE lab</option>
-        <option value="2111">2111 - Classroom</option>
-        <option value="2112">2112 - Classroom</option>
-        <option value="2113">2113 - Classroom</option>
-        <option value="2114">2114 - Classroom</option>
-        <option value="2115">2115 - Classroom</option>
-        <option value="2116">2116 - Cabin of HOD/Departments Office</option>
-        <option value="2117">2117 - Ladies Common Room + Ladies Toilet</option>
       </select>
       <div id="firstFloorInfo" class="room-info"></div>
     </div>
 
     <div id="secondFloor" class="tabcontent">
       <img src="https://via.placeholder.com/400x300?text=Building+2+2nd+Floor" alt="2nd Floor" class="floor-plan" onclick="zoomImage(this.src)">
-      <div class="room-info">Detailed information for 2nd Floor coming soon.</div>
+      <select id="secondFloorRooms" onchange="showRoomInfo('second')">
+        <option value="">Select a room</option>
+      </select>
+      <div id="secondFloorInfo" class="room-info"></div>
     </div>
 
     <div id="thirdFloor" class="tabcontent">
       <img src="https://via.placeholder.com/400x300?text=Building+2+3rd+Floor" alt="3rd Floor" class="floor-plan" onclick="zoomImage(this.src)">
       <select id="thirdFloorRooms" onchange="showRoomInfo('third')">
         <option value="">Select a room</option>
-        <option value="2301">2301 - Pharmacognosy Laboratory- 2</option>
-        <option value="2302">2302 - Pharmacology Laboratory- 2</option>
-        <option value="2303">2303 - Classroom</option>
-        <option value="2304">2304 - Classroom</option>
-        <option value="2305">2305 - Classroom</option>
-        <option value="2306">2306 - Classroom</option>
-        <option value="2307">2307 - Pharmaceutics Lab</option>
-        <option value="2308">2308 - Pharmaceuticals Chemistry Laboratory- 2</option>
-        <option value="2309">2309 - Pharmacy Practice Lab</option>
-        <option value="2310">2310 - Gents Toilet</option>
-        <option value="2311">2311 - Classroom</option>
-        <option value="2312">2312 - Classroom</option>
-        <option value="2313">2313 - Dean's Office</option>
-        <option value="2314">2314 - Computer Centre and Languages Lab</option>
-        <option value="2315">2315 - Store room - 2 (Glassware & Equipments)</option>
-        <option value="2316">2316 - Store room - 1A (Chemicals)</option>
-        <option value="2317">2317 - Faculty Room</option>
       </select>
       <div id="thirdFloorInfo" class="room-info"></div>
+    </div>
+
+    <div id="fourthFloor" class="tabcontent">
+      <img src="https://via.placeholder.com/400x300?text=Building+2+4th+Floor" alt="4th Floor" class="floor-plan" onclick="zoomImage(this.src)">
+      <select id="fourthFloorRooms" onchange="showRoomInfo('fourth')">
+        <option value="">Select a room</option>
+      </select>
+      <div id="fourthFloorInfo" class="room-info"></div>
     </div>
   </div>
 </div>
 
+<!-- Settings Panel -->
+<div id="settingsPanel">
+  <h3 style="margin-bottom:8px; color:var(--primary-color)">Settings</h3>
+
+  <label>Building:</label>
+  <select id="settingsBuilding">
+    <option value="building2">Building 2</option>
+  </select>
+
+  <label>Floor:</label>
+  <input id="settingsFloor" placeholder="e.g., ground, first, fourth">
+
+  <label>Room ID:</label>
+  <input id="settingsRoomId" placeholder="e.g., 2001">
+
+  <label>Room Name:</label>
+  <input id="settingsRoomName" placeholder="e.g., Seminar Hall">
+
+  <label>Staff (comma separated):</label>
+  <textarea id="settingsStaff" rows="3" placeholder="Staff1, Staff2"></textarea>
+
+  <button onclick="saveRoomSettings()">Save Room</button>
+
+  <hr style="margin:12px 0;">
+
+  <label>New Floor Name:</label>
+  <input id="newFloorName" placeholder="e.g., fifth">
+  <button onclick="addNewFloor()">Add Floor</button>
+
+  <p style="font-size:12px; color:#666; margin-top:8px;">Note: Save will POST to <code>/api/update-room</code>. Add Floor will POST to <code>/api/add-floor</code>.</p>
+</div>
+
+<!-- Settings toggle button -->
+<button id="settingsToggleBtn" title="Toggle settings" onclick="toggleSettings()">⚙️</button>
+
 <!-- Events Panel -->
-<div id="eventsControls">
+<div id="eventsControls" style="display:none;">
   <h3 style="margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 8px;">Upcoming Events</h3>
   <div id="eventsList"></div>
 </div>
 
 <!-- Favorites Panel -->
-<div id="favoritesPanel">
+<div id="favoritesPanel" style="display:none;">
   <h3 style="margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 8px;">My Favorite Locations</h3>
   <div id="favoritesList"></div>
 </div>
@@ -746,8 +220,10 @@
 </div>
 
 <script>
+  // Mapbox token (kept as in original file)
   mapboxgl.accessToken = 'pk.eyJ1IjoidmVkYW50b20iLCJhIjoiY202bWEweDMwMGV2YzJrczRlZ2JtYWZibSJ9.LC_mF9gyUu5vBXuot8FQWQ';
 
+  // Locations (unchanged) - used for markers & route dropdowns
   const locations = [
     { name: "Building 2", coords: [73.88367516423422, 18.459181351404517], image: "https://via.placeholder.com/150", description: "Engineering Dept" },
     { name: "Main Building", coords: [73.8835843028105, 18.460288315096374], image: "Building_VU_2-min.jpg", description: "Admin", zoomable: true },
@@ -759,8 +235,8 @@
     { name: "Canteen", coords: [73.88411692573803, 18.458480900120453], image: "https://via.placeholder.com/150", description: "Food & Beverages" }
   ];
 
-  // Building 2 room data
-  const building2Rooms = {
+  // Fallback initial building2Rooms data (used if backend not running)
+  const initialBuilding2Rooms = {
     ground: {
       "2001": { name: "Seminar Hall", staff: [] },
       "2002": { name: "Staff room (central store)", staff: [] },
@@ -815,6 +291,9 @@
       ]},
       "2117": { name: "Ladies Common Room + Ladies Toilet", staff: [] }
     },
+    second: {
+      // placeholder example rooms (empty initially in original)
+    },
     third: {
       "2301": { name: "Pharmacognosy Laboratory- 2", staff: [] },
       "2302": { name: "Pharmacology Laboratory- 2", staff: [] },
@@ -837,57 +316,28 @@
         "Dr. Neeta Rai", "Dr. Sabeena Syed", "Prof. Supriya Unavane", 
         "Prof. Snehal Hase"
       ]}
+    },
+    fourth: {
+      // new 4th floor added (empty by default)
     }
   };
 
-  // Sample events data
+  // building2Rooms will be loaded from backend if available, otherwise fallback to initialBuilding2Rooms
+  let building2Rooms = {};
+
+  // Sample events data (unchanged)
   const events = [
-    {
-      id: 1,
-      title: "Career Fair 2023",
-      description: "Annual university career fair with top companies",
-      location: "Main Building",
-      coords: [73.8835843028105, 18.460288315096374], // Same as Main Building
-      date: "2023-11-15",
-      time: "10:00 AM - 4:00 PM",
-      category: "career"
-    },
-    {
-      id: 2,
-      title: "Engineering Seminar",
-      description: "Guest lecture on modern engineering practices",
-      location: "Building 2",
-      coords: [73.88367516423422, 18.459181351404517], // Same as Building 2
-      date: "2023-11-18",
-      time: "2:00 PM - 4:00 PM",
-      category: "academic"
-    },
-    {
-      id: 3,
-      title: "Sports Day",
-      description: "Annual inter-department sports competition",
-      location: "Main Ground",
-      coords: [73.88390653242094, 18.457495921254193], // Same as Playground
-      date: "2023-11-22",
-      time: "9:00 AM - 5:00 PM",
-      category: "sports"
-    },
-    {
-      id: 4,
-      title: "Art Exhibition",
-      description: "Student art showcase in the design building",
-      location: "Building 5",
-      coords: [73.88385830208395, 18.457996621351942], // Same as Building 5
-      date: "2023-11-25",
-      time: "11:00 AM - 7:00 PM",
-      category: "arts"
-    }
+    { id: 1, title: "Career Fair 2023", description: "Annual university career fair with top companies", location: "Main Building", coords: [73.8835843028105, 18.460288315096374], date: "2023-11-15", time: "10:00 AM - 4:00 PM", category: "career" },
+    { id: 2, title: "Engineering Seminar", description: "Guest lecture on modern engineering practices", location: "Building 2", coords: [73.88367516423422, 18.459181351404517], date: "2023-11-18", time: "2:00 PM - 4:00 PM", category: "academic" },
+    { id: 3, title: "Sports Day", description: "Annual inter-department sports competition", location: "Main Ground", coords: [73.88390653242094, 18.457495921254193], date: "2023-11-22", time: "9:00 AM - 5:00 PM", category: "sports" },
+    { id: 4, title: "Art Exhibition", description: "Student art showcase in the design building", location: "Building 5", coords: [73.88385830208395, 18.457996621351942], date: "2023-11-25", time: "11:00 AM - 7:00 PM", category: "arts" }
   ];
 
-  // Favorites data
+  // Favorites storage
   let favorites = JSON.parse(localStorage.getItem('mapFavorites')) || [];
   let favoriteMarkers = [];
 
+  // Map initialization
   const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v12',
@@ -895,14 +345,11 @@
     zoom: 16
   });
 
-  // Variables for live location tracking
   let liveLocationMarker = null;
   let liveLocationWatchId = null;
   let remainingRouteCoordinates = [];
   let currentRouteSource = null;
   let destinationMarker = null;
-  
-  // Variables for event tracking
   let eventMarkers = [];
   let eventsPanelVisible = false;
 
@@ -934,6 +381,7 @@
     loadFavorites();
   });
 
+  // Add map markers from 'locations'
   function addMarkers() {
     locations.forEach(loc => {
       const popupContent = `
@@ -947,12 +395,10 @@
           ${getFavoriteButtonHTML(loc.coords, loc.name)}
         </div>
       `;
-      
-      // Custom marker colors based on location type
-      let color = '#ff7b25'; // Orange for default
-      if (loc.name.toLowerCase().includes('building')) color = '#e64a19'; // Darker orange for buildings
-      if (loc.name.toLowerCase().includes('canteen')) color = '#f72585'; // Pink for canteen
-      if (loc.name.toLowerCase().includes('playground')) color = '#ff9800'; // Light orange for playgrounds
+      let color = '#ff7b25';
+      if (loc.name.toLowerCase().includes('building')) color = '#e64a19';
+      if (loc.name.toLowerCase().includes('canteen')) color = '#f72585';
+      if (loc.name.toLowerCase().includes('playground')) color = '#ff9800';
       
       const el = document.createElement('div');
       el.className = 'marker';
@@ -968,30 +414,16 @@
         .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent))
         .addTo(map);
       
-      // Store the marker reference for later use
       loc.marker = marker;
     });
   }
 
   function getFavoriteButtonHTML(coords, name) {
-    const isFavorite = favorites.some(fav => 
-      fav.coords.lng === coords[0] && fav.coords.lat === coords[1]
-    );
-    
+    const isFavorite = favorites.some(fav => fav.coords.lng === coords[0] && fav.coords.lat === coords[1]);
     if (isFavorite) {
-      return `
-        <button class="remove-favorite-btn-popup" 
-                onclick="removeFavoriteByCoords([${coords}], event)">
-          Remove from Favorites
-        </button>
-      `;
+      return `<button class="remove-favorite-btn-popup" onclick="removeFavoriteByCoords([${coords}], event)">Remove from Favorites</button>`;
     } else {
-      return `
-        <button class="add-favorite-btn-popup" 
-                onclick="addFavoriteByCoords([${coords}], '${name}', event)">
-          Add to Favorites
-        </button>
-      `;
+      return `<button class="add-favorite-btn-popup" onclick="addFavoriteByCoords([${coords}], '${name}', event)">Add to Favorites</button>`;
     }
   }
 
@@ -999,18 +431,11 @@
     const selects = ['location', 'start', 'destination'];
     selects.forEach(id => {
       const select = document.getElementById(id);
-      // Clear existing options except the first one
-      while (select.options.length > 0) {
-        select.remove(0);
-      }
-      
-      // Add default option
+      while (select.options.length > 0) select.remove(0);
       const defaultOption = document.createElement("option");
       defaultOption.value = "";
       defaultOption.textContent = id === 'location' ? "Select a location..." : "Select...";
       select.appendChild(defaultOption);
-      
-      // Add location options
       locations.forEach(loc => {
         const option = document.createElement("option");
         option.value = `${loc.coords[1]},${loc.coords[0]}`;
@@ -1023,36 +448,28 @@
   function goToLocation() {
     const value = document.getElementById('location').value;
     if (!value) return;
-    
     const [lat, lng] = value.split(',').map(Number);
     map.flyTo({ center: [lng, lat], zoom: 18 });
   }
 
+  // Route & live location functions (unchanged)
   function updateRoute(startCoord, endCoord) {
     if (!startCoord || !endCoord) {
       const startValue = document.getElementById('start').value;
       const endValue = document.getElementById('destination').value;
-      
       if (!startValue || !endValue) {
         alert('Please select both start and destination points');
         return;
       }
-      
       const [startLat, startLng] = startValue.split(',').map(Number);
       const [endLat, endLng] = endValue.split(',').map(Number);
       startCoord = [startLng, startLat];
       endCoord = [endLng, endLat];
     }
 
-    // Show loading spinner
     document.getElementById('routeSpinner').style.display = 'inline-block';
-    
-    // Remove previous destination marker if it exists
-    if (destinationMarker) {
-      destinationMarker.remove();
-    }
+    if (destinationMarker) destinationMarker.remove();
 
-    // Add red destination marker
     destinationMarker = new mapboxgl.Marker({ color: "#f44336" })
       .setLngLat(endCoord)
       .setPopup(new mapboxgl.Popup().setText("Destination"))
@@ -1061,64 +478,16 @@
     fetch(`https://api.mapbox.com/directions/v5/mapbox/walking/${startCoord.join(',')};${endCoord.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`)
       .then(res => res.json())
       .then(data => {
-        // Hide loading spinner
         document.getElementById('routeSpinner').style.display = 'none';
-        
         if (map.getSource('route')) {
-          map.removeLayer('route');
-          map.removeSource('route');
+          map.removeLayer('route'); map.removeLayer('route-arrows'); map.removeSource('route');
         }
-
-        // Store the route coordinates for live tracking
         remainingRouteCoordinates = data.routes[0].geometry.coordinates;
-        
-        map.addSource('route', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {},
-            geometry: data.routes[0].geometry
-          }
-        });
+        map.addSource('route', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: data.routes[0].geometry } });
         currentRouteSource = 'route';
-
-        map.addLayer({
-          id: 'route',
-          type: 'line',
-          source: 'route',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#ff7b25',
-            'line-width': 5,
-            'line-opacity': 0.8
-          }
-        });
-
-        // Add arrow symbol layer for direction
-        map.addLayer({
-          id: 'route-arrows',
-          type: 'symbol',
-          source: 'route',
-          layout: {
-            'symbol-placement': 'line',
-            'text-field': '▶',
-            'text-size': 12,
-            'symbol-spacing': 50,
-            'text-keep-upright': false
-          },
-          paint: {
-            'text-color': '#ffffff',
-            'text-halo-color': '#ff7b25',
-            'text-halo-width': 1
-          }
-        });
-
-        map.fitBounds([startCoord, endCoord], { 
-          padding: {top: 100, bottom: 100, left: 100, right: 100} 
-        });
+        map.addLayer({ id: 'route', type: 'line', source: 'route', layout: {'line-join':'round','line-cap':'round'}, paint: { 'line-color': '#ff7b25','line-width':5,'line-opacity':0.8 } });
+        map.addLayer({ id: 'route-arrows', type: 'symbol', source: 'route', layout: { 'symbol-placement': 'line','text-field': '▶','text-size': 12,'symbol-spacing': 50,'text-keep-upright': false }, paint: { 'text-color': '#ffffff','text-halo-color': '#ff7b25','text-halo-width': 1 } });
+        map.fitBounds([startCoord, endCoord], { padding: {top:100,bottom:100,left:100,right:100} });
       })
       .catch(error => {
         console.error('Error fetching route:', error);
@@ -1128,34 +497,18 @@
   }
 
   function useLiveLocation() {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
-      return;
-    }
-
+    if (!navigator.geolocation) { alert('Geolocation is not supported by your browser'); return; }
     const destinationValue = document.getElementById('destination').value;
-    if (!destinationValue) {
-      alert('Please select a destination first');
-      return;
-    }
-
-    // Show loading spinner
+    if (!destinationValue) { alert('Please select a destination first'); return; }
     document.getElementById('locationSpinner').style.display = 'inline-block';
-    
-    // Show stop button and hide live location button
     document.getElementById('stopLiveLocation').style.display = 'block';
     document.querySelector('#controls button[onclick="useLiveLocation()"]').style.display = 'none';
 
-    // First get current position
     navigator.geolocation.getCurrentPosition(position => {
-      // Hide loading spinner
       document.getElementById('locationSpinner').style.display = 'none';
-      
       const liveCoords = [position.coords.longitude, position.coords.latitude];
       const [destLat, destLng] = destinationValue.split(',').map(Number);
       const destinationCoords = [destLng, destLat];
-
-      // Add or update live location marker
       if (!liveLocationMarker) {
         const el = document.createElement('div');
         el.className = 'live-location-marker';
@@ -1165,38 +518,19 @@
         el.style.borderRadius = '50%';
         el.style.border = '2px solid white';
         el.style.boxShadow = '0 0 10px rgba(255, 152, 0, 0.7)';
-        
-        liveLocationMarker = new mapboxgl.Marker({ element: el })
-          .setLngLat(liveCoords)
-          .setPopup(new mapboxgl.Popup().setText("You are here"))
-          .addTo(map);
+        liveLocationMarker = new mapboxgl.Marker({ element: el }).setLngLat(liveCoords).setPopup(new mapboxgl.Popup().setText("You are here")).addTo(map);
       } else {
         liveLocationMarker.setLngLat(liveCoords);
       }
 
-      // Remove previous destination marker if it exists
-      if (destinationMarker) {
-        destinationMarker.remove();
-      }
-
-      // Add red destination marker
-      destinationMarker = new mapboxgl.Marker({ color: "#f44336" })
-        .setLngLat(destinationCoords)
-        .setPopup(new mapboxgl.Popup().setText("Destination"))
-        .addTo(map);
-
+      if (destinationMarker) destinationMarker.remove();
+      destinationMarker = new mapboxgl.Marker({ color: "#f44336" }).setLngLat(destinationCoords).setPopup(new mapboxgl.Popup().setText("Destination")).addTo(map);
       map.flyTo({ center: liveCoords, zoom: 17 });
-
-      // Update route with current position
       updateRoute(liveCoords, destinationCoords);
 
-      // Start watching position
       liveLocationWatchId = navigator.geolocation.watchPosition(
         position => updateLivePosition(position, destinationCoords),
-        error => {
-          console.error('Error getting live location:', error);
-          document.getElementById('locationSpinner').style.display = 'none';
-        },
+        error => { console.error('Error getting live location:', error); document.getElementById('locationSpinner').style.display = 'none'; },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
       );
 
@@ -1204,118 +538,47 @@
       console.error('Error getting location:', error);
       document.getElementById('locationSpinner').style.display = 'none';
       alert('Unable to retrieve your location');
-    }, {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    });
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
   }
 
   function stopLiveLocationTracking() {
-    if (liveLocationWatchId) {
-      navigator.geolocation.clearWatch(liveLocationWatchId);
-      liveLocationWatchId = null;
-    }
-    
-    if (liveLocationMarker) {
-      liveLocationMarker.remove();
-      liveLocationMarker = null;
-    }
-    
-    if (destinationMarker) {
-      destinationMarker.remove();
-      destinationMarker = null;
-    }
-    
-    // Remove route if it exists
-    if (map.getSource('route')) {
-      map.removeLayer('route');
-      map.removeLayer('route-arrows');
-      map.removeSource('route');
-    }
-    
-    // Show live location button and hide stop button
+    if (liveLocationWatchId) { navigator.geolocation.clearWatch(liveLocationWatchId); liveLocationWatchId = null; }
+    if (liveLocationMarker) { liveLocationMarker.remove(); liveLocationMarker = null; }
+    if (destinationMarker) { destinationMarker.remove(); destinationMarker = null; }
+    if (map.getSource('route')) { try { map.removeLayer('route'); map.removeLayer('route-arrows'); map.removeSource('route'); } catch(e){} }
     document.querySelector('#controls button[onclick="useLiveLocation()"]').style.display = 'block';
     document.getElementById('stopLiveLocation').style.display = 'none';
   }
 
   function updateLivePosition(position, destinationCoords) {
     const liveCoords = [position.coords.longitude, position.coords.latitude];
-    
-    // Update the marker position
-    if (liveLocationMarker) {
-      liveLocationMarker.setLngLat(liveCoords);
-    }
-
-    // Update the camera to follow the user
+    if (liveLocationMarker) liveLocationMarker.setLngLat(liveCoords);
     map.flyTo({ center: liveCoords, zoom: 17 });
 
-    // Check if we have route coordinates to work with
     if (remainingRouteCoordinates && remainingRouteCoordinates.length > 0) {
-      // Find the closest point on the route to the current position
-      let closestPointIndex = 0;
-      let minDistance = Infinity;
-      
+      let closestPointIndex = 0; let minDistance = Infinity;
       remainingRouteCoordinates.forEach((coord, index) => {
         const distance = getDistance(liveCoords, coord);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestPointIndex = index;
-        }
+        if (distance < minDistance) { minDistance = distance; closestPointIndex = index; }
       });
-
-      // If we're close to a point on the route, trim the route up to that point
-      if (minDistance < 0.0001) { // About 11 meters
-        // Trim the route up to the closest point
+      if (minDistance < 0.0001) {
         remainingRouteCoordinates = remainingRouteCoordinates.slice(closestPointIndex);
-        
-        // Update the route display
         updateRemainingRoute(remainingRouteCoordinates);
       }
     }
   }
 
   function updateRemainingRoute(coordinates) {
-    if (coordinates.length < 2) return; // Need at least 2 points for a line
-    
-    // Create a new GeoJSON feature with the remaining coordinates
-    const geojson = {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: coordinates
-      }
-    };
-
-    // Check if we have a route source already
+    if (coordinates.length < 2) return;
+    const geojson = { type: 'Feature', geometry: { type: 'LineString', coordinates: coordinates } };
     if (map.getSource(currentRouteSource)) {
-      // Update the existing source
       map.getSource(currentRouteSource).setData(geojson);
     } else {
-      // Create a new source (shouldn't happen in normal flow)
-      map.addSource(currentRouteSource, {
-        type: 'geojson',
-        data: geojson
-      });
-
-      map.addLayer({
-        id: currentRouteSource,
-        type: 'line',
-        source: currentRouteSource,
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#ff7b25',
-          'line-width': 5,
-          'line-opacity': 0.8
-        }
-      });
+      map.addSource(currentRouteSource, { type: 'geojson', data: geojson });
+      map.addLayer({ id: currentRouteSource, type: 'line', source: currentRouteSource, layout: { 'line-join': 'round','line-cap':'round' }, paint: { 'line-color': '#ff7b25','line-width':5,'line-opacity':0.8 } });
     }
   }
 
-  // Helper function to calculate distance between two coordinates
   function getDistance(coord1, coord2) {
     const dx = coord1[0] - coord2[0];
     const dy = coord1[1] - coord2[1];
@@ -1329,15 +592,15 @@
     overlay.style.display = 'flex';
   }
 
-  function closeZoom() {
-    document.getElementById('zoomOverlay').style.display = 'none';
-  }
+  function closeZoom() { document.getElementById('zoomOverlay').style.display = 'none'; }
 
   // Indoor navigation functions
   function showBuildingFloors() {
     const building = document.getElementById('buildingSelector').value;
     if (building === '2') {
       document.getElementById('building2Controls').style.display = 'block';
+      // Ensure selects are filled from building2Rooms
+      populateIndoorRoomSelects();
     } else {
       document.getElementById('building2Controls').style.display = 'none';
       alert('Indoor navigation for Building ' + building + ' coming soon!');
@@ -1346,15 +609,9 @@
 
   function openFloor(evt, floorName) {
     const tabcontent = document.getElementsByClassName("tabcontent");
-    for (let i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
-    }
-
+    for (let i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
     const tablinks = document.getElementsByClassName("tablinks");
-    for (let i = 0; i < tablinks.length; i++) {
-      tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-
+    for (let i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
     document.getElementById(floorName).style.display = "block";
     evt.currentTarget.className += " active";
   }
@@ -1364,81 +621,51 @@
     const infoId = floor + 'FloorInfo';
     const roomNumber = document.getElementById(selectId).value;
     const infoDiv = document.getElementById(infoId);
-    
-    if (!roomNumber) {
-      infoDiv.innerHTML = '';
+    if (!roomNumber) { infoDiv.innerHTML = ''; return; }
+
+    if (!building2Rooms || !building2Rooms[floor] || !building2Rooms[floor][roomNumber]) {
+      infoDiv.innerHTML = `<p>No data for ${roomNumber}</p>`;
       return;
     }
-
     const roomData = building2Rooms[floor][roomNumber];
     let infoHTML = `<h4>${roomNumber} - ${roomData.name}</h4>`;
-    
     if (roomData.staff && roomData.staff.length > 0) {
       infoHTML += '<p><strong>Staff:</strong></p><ul>';
-      roomData.staff.forEach(staff => {
-        infoHTML += `<li>${staff}</li>`;
-      });
+      roomData.staff.forEach(staff => { infoHTML += `<li>${staff}</li>`; });
       infoHTML += '</ul>';
     } else {
       infoHTML += '<p>No staff information available</p>';
     }
-    
     infoDiv.innerHTML = infoHTML;
   }
 
-  // Event-related functions
+  // Events functions
   function toggleEventsPanel() {
     const eventsPanel = document.getElementById('eventsControls');
     eventsPanelVisible = !eventsPanelVisible;
     eventsPanel.style.display = eventsPanelVisible ? 'block' : 'none';
-    
-    if (eventsPanelVisible) {
-      loadEvents();
-    } else {
-      clearEventMarkers();
-    }
+    if (eventsPanelVisible) loadEvents(); else clearEventMarkers();
   }
 
   function loadEvents() {
     const eventsList = document.getElementById('eventsList');
     eventsList.innerHTML = '';
-    
-    // Clear any existing markers
     clearEventMarkers();
-    
-    // Add events to the list
     events.forEach(event => {
       const eventElement = document.createElement('div');
       eventElement.className = 'event-item';
-      eventElement.innerHTML = `
-        <h4>${event.title}</h4>
-        <div class="event-meta">
-          <span>${event.date} • ${event.time}</span><br>
-          <span class="event-location">${event.location}</span>
-        </div>
-        <p class="event-description">${event.description}</p>
-      `;
-      
-      // Click handler to zoom to event location
-      eventElement.addEventListener('click', () => {
-        zoomToEvent(event);
-      });
-      
+      eventElement.innerHTML = `<h4>${event.title}</h4><div class="event-meta"><span>${event.date} • ${event.time}</span><br><span class="event-location">${event.location}</span></div><p class="event-description">${event.description}</p>`;
+      eventElement.addEventListener('click', () => { zoomToEvent(event); });
       eventsList.appendChild(eventElement);
-      
-      // Add marker for this event
       addEventMarker(event);
     });
   }
 
   function addEventMarker(event) {
-    // Create a custom marker element
     const el = document.createElement('div');
     el.className = 'event-marker';
-    el.innerHTML = 'E'; // You could use icons or numbers here
-    
-    const marker = new mapboxgl.Marker({ element: el })
-      .setLngLat(event.coords)
+    el.innerHTML = 'E';
+    const marker = new mapboxgl.Marker({ element: el }).setLngLat(event.coords)
       .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`
         <div style="width: 200px;">
           <h4 style="color: #f72585; margin-bottom: 5px;">${event.title}</h4>
@@ -1446,247 +673,201 @@
           <p><strong>Where:</strong> ${event.location}</p>
           <p>${event.description}</p>
         </div>
-      `))
-      .addTo(map);
-    
+      `)).addTo(map);
     eventMarkers.push(marker);
   }
 
-  function clearEventMarkers() {
-    eventMarkers.forEach(marker => marker.remove());
-    eventMarkers = [];
-  }
+  function clearEventMarkers() { eventMarkers.forEach(marker => marker.remove()); eventMarkers = []; }
 
   function zoomToEvent(event) {
-    map.flyTo({
-      center: event.coords,
-      zoom: 18,
-      essential: true
-    });
-    
-    // Open the event's popup
+    map.flyTo({ center: event.coords, zoom: 18, essential: true });
     const marker = eventMarkers.find(m => {
       const lngLat = m.getLngLat();
       return lngLat.lng === event.coords[0] && lngLat.lat === event.coords[1];
     });
-    
-    if (marker) {
-      marker.togglePopup();
-    }
+    if (marker) marker.togglePopup();
   }
 
-  // Theme toggle function
+  // Theme
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
-    if (currentTheme === 'dark') {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
-    }
+    if (currentTheme === 'dark') { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
+    else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
   }
-
-  // Check for saved theme preference
-  function checkTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
-  }
+  function checkTheme() { const savedTheme = localStorage.getItem('theme') || 'light'; if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme','dark'); }
 
   // Favorites functions
   function toggleFavoritesPanel() {
     const favoritesPanel = document.getElementById('favoritesPanel');
-    if (favoritesPanel.style.display === 'block') {
-      favoritesPanel.style.display = 'none';
-    } else {
-      favoritesPanel.style.display = 'block';
-      renderFavorites();
-    }
+    if (favoritesPanel.style.display === 'block') favoritesPanel.style.display = 'none';
+    else { favoritesPanel.style.display = 'block'; renderFavorites(); }
   }
-
   function renderFavorites() {
-    const favoritesList = document.getElementById('favoritesList');
-    favoritesList.innerHTML = '';
-    
-    if (favorites.length === 0) {
-      favoritesList.innerHTML = '<p>No favorite locations saved yet.</p>';
-      return;
-    }
-    
+    const favoritesList = document.getElementById('favoritesList'); favoritesList.innerHTML = '';
+    if (favorites.length === 0) { favoritesList.innerHTML = '<p>No favorite locations saved yet.</p>'; return; }
     favorites.forEach((fav, index) => {
-      const favItem = document.createElement('div');
-      favItem.className = 'favorite-item';
-      favItem.innerHTML = `
-        <span>${fav.name}</span>
-        <button onclick="removeFavorite(${index}, event)">×</button>
-      `;
-      
-      favItem.addEventListener('click', () => {
-        map.flyTo({
-          center: [fav.coords.lng, fav.coords.lat],
-          zoom: fav.zoom || 16
-        });
-      });
-      
+      const favItem = document.createElement('div'); favItem.className = 'favorite-item';
+      favItem.innerHTML = `<span>${fav.name}</span><button onclick="removeFavorite(${index}, event)">×</button>`;
+      favItem.addEventListener('click', () => { map.flyTo({ center: [fav.coords.lng, fav.coords.lat], zoom: fav.zoom || 16 }); });
       favoritesList.appendChild(favItem);
     });
   }
-
   function addFavoriteByCoords(coords, name, event) {
     event.stopPropagation();
-    
-    const newFavorite = {
-      name: name,
-      coords: { lng: coords[0], lat: coords[1] },
-      zoom: 16
-    };
-    
-    // Check if this location is already favorited
-    const isDuplicate = favorites.some(fav => 
-      fav.coords.lng === newFavorite.coords.lng && 
-      fav.coords.lat === newFavorite.coords.lat
-    );
-    
-    if (isDuplicate) {
-      alert('This location is already in your favorites!');
-      return;
-    }
-    
-    favorites.push(newFavorite);
-    saveFavorites();
-    renderFavorites();
-    
-    // Add marker for this favorite
-    addFavoriteMarker(newFavorite);
-    
-    // Update the popup content to show remove option
-    updatePopupContent(coords, name, true);
-    
-    // Show the favorites panel
-    document.getElementById('favoritesPanel').style.display = 'block';
+    const newFavorite = { name: name, coords: { lng: coords[0], lat: coords[1] }, zoom: 16 };
+    const isDuplicate = favorites.some(fav => fav.coords.lng === newFavorite.coords.lng && fav.coords.lat === newFavorite.coords.lat);
+    if (isDuplicate) { alert('This location is already in your favorites!'); return; }
+    favorites.push(newFavorite); saveFavorites(); renderFavorites(); addFavoriteMarker(newFavorite); updatePopupContent(coords, name, true); document.getElementById('favoritesPanel').style.display = 'block';
   }
-
   function removeFavoriteByCoords(coords, event) {
     event.stopPropagation();
-    
-    const index = favorites.findIndex(fav => 
-      fav.coords.lng === coords[0] && 
-      fav.coords.lat === coords[1]
-    );
-    
+    const index = favorites.findIndex(fav => fav.coords.lng === coords[0] && fav.coords.lat === coords[1]);
     if (index !== -1) {
-      // Remove the marker
-      if (favoriteMarkers[index]) {
-        favoriteMarkers[index].remove();
-        favoriteMarkers.splice(index, 1);
-      }
-      
-      // Remove from favorites array
-      favorites.splice(index, 1);
-      saveFavorites();
-      renderFavorites();
-      
-      // Find the location name
-      let name = 'Location';
-      const location = locations.find(loc => 
-        loc.coords[0] === coords[0] && loc.coords[1] === coords[1]
-      );
-      if (location) name = location.name;
-      
-      // Update the popup content to show add option
+      if (favoriteMarkers[index]) { favoriteMarkers[index].remove(); favoriteMarkers.splice(index, 1); }
+      favorites.splice(index, 1); saveFavorites(); renderFavorites();
+      let name = 'Location'; const location = locations.find(loc => loc.coords[0] === coords[0] && loc.coords[1] === coords[1]); if (location) name = location.name;
       updatePopupContent(coords, name, false);
     }
   }
-
-  function removeFavorite(index, event) {
-    event.stopPropagation();
-    
-    // Remove the marker
-    if (favoriteMarkers[index]) {
-      favoriteMarkers[index].remove();
-      favoriteMarkers.splice(index, 1);
-    }
-    
-    // Remove from favorites array
-    favorites.splice(index, 1);
-    saveFavorites();
-    renderFavorites();
-  }
-
+  function removeFavorite(index, event) { event.stopPropagation(); if (favoriteMarkers[index]) { favoriteMarkers[index].remove(); favoriteMarkers.splice(index, 1); } favorites.splice(index, 1); saveFavorites(); renderFavorites(); }
   function updatePopupContent(coords, name, isFavorite) {
-    // Find the marker and update its popup content
     locations.forEach(loc => {
       if (loc.coords[0] === coords[0] && loc.coords[1] === coords[1]) {
-        const popupContent = `
-          <div style="width: 200px;">
-            <h4 style="margin-bottom: 8px; color: var(--primary-color);">${name}</h4>
-            <img src="${loc.image}" alt="${name}" 
-                 style="width: 100%; height: auto; cursor: ${loc.zoomable ? 'zoom-in' : 'default'}; 
-                        border-radius: 4px; margin-bottom: 8px;" 
-                 ${loc.zoomable ? 'onclick="zoomImage(this.src)"' : ''} />
-            <p style="font-size: 14px; color: #555;">${loc.description}</p>
-            ${isFavorite ? 
-              `<button class="remove-favorite-btn-popup" 
-                      onclick="removeFavoriteByCoords([${coords}], event)">
-                Remove from Favorites
-              </button>` :
-              `<button class="add-favorite-btn-popup" 
-                      onclick="addFavoriteByCoords([${coords}], '${name}', event)">
-                Add to Favorites
-              </button>`
-            }
-          </div>
-        `;
-        
-        if (loc.marker && loc.marker.getPopup()) {
-          loc.marker.getPopup().setHTML(popupContent);
-        }
+        const popupContent = `<div style="width: 200px;"><h4 style="margin-bottom: 8px; color: var(--primary-color);">${name}</h4><img src="${loc.image}" alt="${name}" style="width: 100%; height: auto; cursor: ${loc.zoomable ? 'zoom-in' : 'default'}; border-radius: 4px; margin-bottom: 8px;" ${loc.zoomable ? 'onclick="zoomImage(this.src)"' : ''} /><p style="font-size: 14px; color: #555;">${loc.description}</p>${isFavorite ? `<button class="remove-favorite-btn-popup" onclick="removeFavoriteByCoords([${coords}], event)">Remove from Favorites</button>` : `<button class="add-favorite-btn-popup" onclick="addFavoriteByCoords([${coords}], '${name}', event)">Add to Favorites</button>`}</div>`;
+        if (loc.marker && loc.marker.getPopup()) loc.marker.getPopup().setHTML(popupContent);
       }
     });
   }
-
   function addFavoriteMarker(favorite) {
-    const el = document.createElement('div');
-    el.className = 'favorite-marker';
-    el.innerHTML = '★';
-    
-    const marker = new mapboxgl.Marker({ element: el })
-      .setLngLat([favorite.coords.lng, favorite.coords.lat])
-      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`
-        <div style="width: 200px;">
-          <h4 style="color: var(--accent-color); margin-bottom: 5px;">${favorite.name}</h4>
-          <p>Saved location</p>
-          <button class="remove-favorite-btn-popup" 
-                  onclick="removeFavoriteByCoords([${favorite.coords.lng}, ${favorite.coords.lat}], event)">
-            Remove from Favorites
-          </button>
-        </div>
-      `))
+    const el = document.createElement('div'); el.className = 'favorite-marker'; el.innerHTML = '★';
+    const marker = new mapboxgl.Marker({ element: el }).setLngLat([favorite.coords.lng, favorite.coords.lat])
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<div style="width: 200px;"><h4 style="color: var(--accent-color); margin-bottom: 5px;">${favorite.name}</h4><p>Saved location</p><button class="remove-favorite-btn-popup" onclick="removeFavoriteByCoords([${favorite.coords.lng}, ${favorite.coords.lat}], event)">Remove from Favorites</button></div>`))
       .addTo(map);
-    
     favoriteMarkers.push(marker);
   }
+  function saveFavorites() { localStorage.setItem('mapFavorites', JSON.stringify(favorites)); }
+  function loadFavorites() { favorites = JSON.parse(localStorage.getItem('mapFavorites')) || []; favoriteMarkers.forEach(m => m.remove()); favoriteMarkers = []; favorites.forEach(fav => addFavoriteMarker(fav)); }
 
-  function saveFavorites() {
-    localStorage.setItem('mapFavorites', JSON.stringify(favorites));
+  // ---- BACKEND INTEGRATION: fetch building data from API if available; fallback to initial data
+  async function loadBuildingData() {
+    try {
+      const res = await fetch("http://localhost:3000/api/buildings");
+      if (!res.ok) throw new Error('No backend');
+      const data = await res.json();
+      // Expect backend to return object like { building2: { ground: {...}, first: {...}, ... } }
+      if (data && data.building2) {
+        building2Rooms = data.building2;
+      } else {
+        // If backend returns the whole file keyed differently, try to use it directly
+        building2Rooms = data.building2 || data;
+      }
+      console.log("Loaded building data from backend:", building2Rooms);
+    } catch (err) {
+      console.warn("Could not fetch from backend; using fallback in-page data. Error:", err.message);
+      building2Rooms = initialBuilding2Rooms;
+    }
+    // Ensure 4th floor exists
+    if (!building2Rooms.fourth) building2Rooms.fourth = {};
+    populateIndoorRoomSelects();
   }
 
-  function loadFavorites() {
-    favorites = JSON.parse(localStorage.getItem('mapFavorites')) || [];
-    favoriteMarkers.forEach(marker => marker.remove());
-    favoriteMarkers = [];
-    
-    favorites.forEach(fav => {
-      addFavoriteMarker(fav);
+  // Populate indoor selects with data from building2Rooms
+  function populateIndoorRoomSelects() {
+    const floors = ['ground','first','second','third','fourth'];
+    floors.forEach(floor => {
+      const select = document.getElementById(floor + 'FloorRooms');
+      if (!select) return;
+      // Clear existing options except default
+      while (select.options.length > 1) select.remove(1);
+      const floorData = building2Rooms[floor] || {};
+      Object.keys(floorData).forEach(roomId => {
+        const option = document.createElement('option');
+        option.value = roomId;
+        option.textContent = `${roomId} - ${floorData[roomId].name || 'Room'}`;
+        select.appendChild(option);
+      });
     });
   }
 
-  // Initialize theme and favorites when page loads
-  window.onload = function() {
+  // Settings panel actions: save room settings and add new floor (calls backend endpoints)
+  async function saveRoomSettings() {
+    const building = document.getElementById("settingsBuilding").value;
+    const floor = document.getElementById("settingsFloor").value.trim();
+    const roomId = document.getElementById("settingsRoomId").value.trim();
+    const name = document.getElementById("settingsRoomName").value.trim();
+    const staffRaw = document.getElementById("settingsStaff").value.trim();
+    const staff = staffRaw ? staffRaw.split(",").map(s => s.trim()).filter(s => s.length>0) : [];
+
+    if (!floor || !roomId || !name) {
+      alert("Please fill Floor, Room ID and Room Name.");
+      return;
+    }
+
+    // Try backend first
+    try {
+      const res = await fetch("http://localhost:3000/api/update-room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ building, floor, roomId, name, staff })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        alert("Room saved successfully to backend.");
+        await loadBuildingData();
+        populateIndoorRoomSelects();
+        return;
+      } else {
+        alert("Backend error: " + (result.error || JSON.stringify(result)));
+      }
+    } catch (err) {
+      console.warn("Backend not available; applying changes locally:", err.message);
+      // Apply locally to building2Rooms and refresh the selects
+      if (!building2Rooms[floor]) building2Rooms[floor] = {};
+      building2Rooms[floor][roomId] = { name, staff };
+      populateIndoorRoomSelects();
+      alert("Room saved locally (backend not running).");
+    }
+  }
+
+  async function addNewFloor() {
+    const building = document.getElementById("settingsBuilding").value;
+    const floorName = document.getElementById("newFloorName").value.trim();
+    if (!floorName) { alert("Please enter a floor name."); return; }
+
+    try {
+      const res = await fetch("http://localhost:3000/api/add-floor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ building, floorName })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Floor added successfully on backend.");
+        await loadBuildingData();
+        populateIndoorRoomSelects();
+        return;
+      } else {
+        alert("Backend error: " + (data.error || JSON.stringify(data)));
+      }
+    } catch (err) {
+      console.warn("Backend not available; adding floor locally:", err.message);
+      if (!building2Rooms[floorName]) building2Rooms[floorName] = {};
+      populateIndoorRoomSelects();
+      alert("Floor added locally (backend not running).");
+    }
+  }
+
+  function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    panel.style.display = (panel.style.display === "block") ? "none" : "block";
+  }
+
+  // Initial load
+  window.onload = async function() {
     checkTheme();
     loadFavorites();
+    await loadBuildingData();
+    populateDropdowns();
   };
 </script>
 
